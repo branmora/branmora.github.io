@@ -1,12 +1,14 @@
 name: "cars"
 output_dir: "docs"
 navbar:
-  title: "Cars"
+  title: "Brandon Mora"
   left:
   - text: "Home"
     href: index.html
-  - text: "Speed and Distance"
-    href: speed-and-distance.html
+  - text: "CV"
+    href: cv.html
 output:
   html_document:
-  theme: cosmo
+    theme: yeti
+    include:
+      after_body: footer.html
