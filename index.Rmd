@@ -2,12 +2,7 @@
 title: "About me"
 ---
 
-
 <link rel="stylesheet" href="styles.css" type="text/css">
-
-<!-- Add icon library
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
- -->
 
 ---
 
@@ -18,7 +13,7 @@ title: "About me"
 <img src="img/img_test.jpg" style="width:100%; border:0px solid; margin-right: 20px" align="center">
 
 
-<font size="5"> Brandon Mora </font>
+<font size="5"> Brandon Mora Pérez </font>
 
 <p style="text-align: center;">
     <a href="mailto:bran.mora7@gmail.com" class="fa fa-envelope"></a>
@@ -31,10 +26,15 @@ title: "About me"
   
 <div class = "col-md-9" align="justify">
 
-Hi! I'm Brandon Mora.
+Welcome to my webpage! 
 
-I am interested in pursuing an academic career.
+I am an Economics graduate interested in pursuing an academic career in applied economics. My work and research interests lie in program evaluation, machine learning and big data.
 
+I hold a [MicroMasters in Data, Economics and Development Policy](https://micromasters.mit.edu/dedp/), an online learning initiative offered by the Massachusetts Institute of Technology in collaboration with edX. I have also taken coursework at the PhD-level in Causal Inference and Behavioral Economics through the [Remote Student Exchange](https://remotestudentexchange.org) program.
+
+My research experience includes working since mid-2019 as an assistant in quantitative analysis for undergraduate research thesis in [Universidad Andina del Cusco](http://repositorio.uandina.edu.pe). I also work in the [Regional Government of Cusco](https://www.gob.pe/regioncusco) as part of the team responsible for setting up the first Regional Development Agency in the department, aiming to ensure that social policy in the region is informed by rigorously established evidence.
+
+<font size="2"> (pronouns: he/him) </font>
 
 </div>
 
