@@ -1,6 +1,0 @@
----
-title: "CV"
----
-
-You can read my CV [here](https://branmora.github.io/CV_BrandonMora.pdf)
-

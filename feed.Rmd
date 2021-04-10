@@ -1,5 +1,0 @@
----
-title: "feed"
----
-
-<a class="twitter-timeline" href="https://twitter.com/branmora7?ref_src=twsrc%5Etfw">Tweets by branmora7</a> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
