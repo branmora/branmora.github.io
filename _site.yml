@@ -1,4 +1,4 @@
-name: "cars"
+name: "Brandon Mora"
 output_dir: "docs"
 navbar:
   title: "Brandon Mora"
@@ -7,8 +7,19 @@ navbar:
     href: index.html
   - text: "CV"
     href: cv.html
+  right:
+  - icon: fa-envelope fa-lg
+    href: mailto:bran.mora7@gmail.com
+  - icon: fa-twitter fa-lg
+    href: https://twitter.com/branmora7
+  - icon: fa-linkedin fa-lg
+    href: https://www.linkedin.com/in/branmora/
+  - icon: fa-github fa-lg
+    href: http://github.com/branmora
+
 output:
   html_document:
     theme: yeti
+    css: "main.css"
     include:
       after_body: footer.html
