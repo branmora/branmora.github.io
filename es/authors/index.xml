@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Authors | Brandon Mora</title>
+    <link>https://branmora.github.io/es/authors/</link>
+      <atom:link href="https://branmora.github.io/es/authors/index.xml" rel="self" type="application/rss+xml" />
+    <description>Authors</description>
+    <generator>Source Themes Academic (https://sourcethemes.com/academic/)</generator><language>es-pe</language><lastBuildDate>Wed, 01 Jan 2020 00:00:00 +0000</lastBuildDate>
+    <image>
+      <url>https://branmora.github.io/images/icon_hu0b7a4cb9992c9ac0e91bd28ffd38dd00_9727_512x512_fill_lanczos_center_2.png</url>
+      <title>Authors</title>
+      <link>https://branmora.github.io/es/authors/</link>
+    </image>
+    
+    <item>
+      <title></title>
+      <link>https://branmora.github.io/es/authors/admin/</link>
+      <pubDate>Wed, 01 Jan 2020 00:00:00 +0000</pubDate>
+      <guid>https://branmora.github.io/es/authors/admin/</guid>
+      <description>&lt;p&gt;Trabajo para el &lt;a href=&#34;https://www.regioncusco.gob.pe&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt; Gobierno Regional Cusco &lt;/a&gt; como parte del equipo de Desarrollo Social. Nuestro equipo es responsable de establecer la primera Agencia de Desarrollo Regional en el departamento. Con el objetivo de diseñar, implementar y evaluar rigurosamente las intervenciones sociales del Gobierno Regional.&lt;/p&gt;
+&lt;p&gt;Mis intereses de investigación incluyen la economía del desarrollo, educación financiera, ciencias del comportamiento y ciencias políticas. Soy parte de un proyecto que investiga el papel de los espacios de concertación como una forma de participación ciudadana en el desarrollo social. Para obtener más detalles, puede leer mi &lt;a href=&#34;files/cv.brandonmora.pdf&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt; CV &lt;/a&gt;.&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>
