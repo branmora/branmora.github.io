@@ -1,0 +1,29 @@
+{{- /* A post or note with an ECharts option loads ECharts and the chart script, deferred, so the
+   page's text paints without waiting for them; any other page loads neither. */ -}}
+{{ define "head" }}
+{{- $model := partial "content/model.html" . }}
+{{- $interactive := false }}
+{{- range $model.figures }}{{ if .option }}{{ $interactive = true }}{{ end }}{{ end }}
+{{- if $interactive }}
+  {{- with resources.Get "vendor/echarts/echarts.min.js" | fingerprint }}
+  <script src="{{ .RelPermalink }}" integrity="{{ .Data.Integrity }}" defer></script>
+  {{- end }}
+  {{- with resources.Get "js/charts.js" | minify | fingerprint }}
+  <script src="{{ .RelPermalink }}" integrity="{{ .Data.Integrity }}" defer></script>
+  {{- end }}
+{{- end }}
+{{ end }}
+{{ define "main" }}
+{{- $_ := partialCached "content/validate.html" . .Path }}
+{{- $model := partial "content/model.html" . }}
+{{- if in (slice "post" "note") $model.kind }}
+{{ partial "piece/page.html" (dict "page" . "model" $model) }}
+{{- else if eq $model.kind "project" }}
+{{ partial "project/page.html" (dict "page" . "model" $model) }}
+{{- else }}
+<main>
+  <h1>{{ .Title }}</h1>
+  {{ .Content }}
+</main>
+{{- end }}
+{{ end }}

@@ -1,0 +1,11 @@
+{{- /* A project's image as an <img>, resized to at most 1200px wide as WebP so a list of cards
+stays within the weight budget. Context: dict "page", "model", and "class"; renders nothing for a
+project without an image. "lazy" defers it, for cards below the fold. */ -}}
+{{- with .model.image -}}
+  {{- $r := $.page.Resources.Get $.page.Params.image.src -}}
+  {{- $img := $r -}}
+  {{- if in (slice "image/png" "image/jpeg" "image/webp") $r.MediaType.Type -}}
+    {{- $img = $r.Process "fit 1200x1200 webp q82" -}}
+  {{- end }}
+<img class="{{ $.class }}" src="{{ $img.RelPermalink }}" width="{{ $img.Width }}" height="{{ $img.Height }}" alt="{{ .alt }}"{{ if $.lazy }} loading="lazy"{{ end }} decoding="async">
+{{- end -}}

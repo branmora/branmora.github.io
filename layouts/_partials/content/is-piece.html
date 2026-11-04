@@ -1,0 +1,9 @@
+{{- /* Whether a page is a piece, a post or a note (CONTENT.md, What the build rejects): a regular page,
+   not a project, that sets `type` or sits under a `posts/` or `notes/` folder. Takes the page;
+   returns a bool. */ -}}
+{{- $piece := false -}}
+{{- if and .IsPage .File (not (partial "content/is-project.html" .)) -}}
+  {{- $dir := printf "/%s" (path.Dir .File.Path) -}}
+  {{- $piece = or (isset .Params "type") (gt (len (findRE `/(posts|notes)(/|$)` $dir)) 0) -}}
+{{- end -}}
+{{- return $piece -}}

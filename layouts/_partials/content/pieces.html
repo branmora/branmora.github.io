@@ -1,0 +1,21 @@
+{{- /* The posts and notes of the current language, newest first, as rows for the ls -l list
+(components/ls.html). Context: a topic slug to keep only that topic's pieces, or "" for all. */ -}}
+{{- $topic := . -}}
+{{- $pages := where site.RegularPages "Params.type" "in" (slice "post" "note") -}}
+{{- with $topic -}}
+  {{- $pages = where $pages "Params.topics" "intersect" (slice .) -}}
+{{- end -}}
+{{- $rows := slice -}}
+{{- range $pages.ByDate.Reverse -}}
+  {{- $langs := slice .Language.Lang -}}
+  {{- range .Translations -}}{{- $langs = $langs | append .Language.Lang -}}{{- end -}}
+  {{- $rows = $rows | append (dict
+    "date" .Date
+    "kind" .Params.type
+    "langs" $langs
+    "topics" .Params.topics
+    "title" .Title
+    "href" .RelPermalink
+  ) -}}
+{{- end -}}
+{{- return $rows -}}

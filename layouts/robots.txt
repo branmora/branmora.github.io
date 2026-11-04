@@ -1,0 +1,5 @@
+{{- /* robots.txt (spec 007): every crawler, AI crawlers included, may read every page. */ -}}
+User-agent: *
+Allow: /
+
+Sitemap: {{ "sitemap.xml" | absURL }}

@@ -1,0 +1,46 @@
+{{- /*
+  The topic views (specs 006 and 010): one page per topic and language, made from `params.topics`
+  and the string files, but only once a post, note, or project of that language files under the
+  topic (partial topics/filed.html reads the content files, as the site has no pages yet here).
+  A topic with nothing filed in a language has no view, so no filter, sitemap, or llms.txt entry
+  either. Views of one topic in both languages are each other's translation. The path is
+  `<topicsPath>/<slug>/`, from i18n/<lang>.toml: the English view uses the topic's slug, and the
+  other languages derive theirs from the topic's name, in lowercase, without accents, words joined
+  by hyphens (`/es/temas/economia-de-la-ia/`). Topics are filters, not sections: the `topicsPath`
+  sections themselves are never rendered.
+  Real content is mounted here too, so this file builds in production as well.
+*/ -}}
+{{- $accents := dict "á" "a" "à" "a" "ä" "a" "â" "a" "ã" "a" "é" "e" "è" "e" "ë" "e" "ê" "e" "í" "i" "ì" "i" "ï" "i" "î" "i" "ó" "o" "ò" "o" "ö" "o" "ô" "o" "õ" "o" "ú" "u" "ù" "u" "ü" "u" "û" "u" "ñ" "n" "ç" "c" -}}
+{{- $hidden := dict "render" "never" "list" "never" -}}
+{{- $filed := partial "topics/filed.html" . -}}
+{{- range hugo.Sites -}}
+  {{- $lang := .Language.Lang -}}
+  {{- $only := dict "matrix" (dict "languages" (slice $lang)) -}}
+  {{- $strings := os.ReadFile (printf "i18n/%s.toml" $lang) | transform.Unmarshal (dict "format" "toml") -}}
+  {{- $dir := index $strings "topicsPath" -}}
+  {{- if not $dir -}}{{- errorf "i18n/%s.toml: topicsPath is missing" $lang -}}{{- end -}}
+  {{- $.AddPage (dict "path" $dir "kind" "section" "title" $dir "build" $hidden "sites" $only) -}}
+  {{- range site.Params.topics -}}
+    {{- $topic := . -}}
+    {{- if in (index $filed $lang) $topic -}}
+    {{- $name := index $strings (printf "topic_%s" $topic) -}}
+    {{- if not $name -}}{{- errorf "i18n/%s.toml: topic_%s is missing" $lang $topic -}}{{- end -}}
+    {{- $slug := $topic -}}
+    {{- if ne $lang "en" -}}
+      {{- $slug = lower $name -}}
+      {{- range $from, $to := $accents -}}{{- $slug = replace $slug $from $to -}}{{- end -}}
+      {{- $slug = strings.Trim (replaceRE `[^a-z0-9]+` "-" $slug) "-" -}}
+    {{- end -}}
+    {{- $.AddPage (dict
+      "path" (printf "%s/%s" $dir $slug)
+      "kind" "page"
+      "title" $name
+      "layout" "topic"
+      "outputs" (slice "html")
+      "translationKey" (printf "topic-%s" $topic)
+      "params" (dict "topic" $topic)
+      "sites" $only
+    ) -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}

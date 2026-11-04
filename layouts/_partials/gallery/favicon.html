@@ -1,0 +1,13 @@
+{{- /* The favicon at the sizes a tab shows it, each on the light and the dark surface. */ -}}
+{{- with resources.Get "icons/favicon.svg" | fingerprint }}
+{{- $src := .RelPermalink }}
+<div class="column favicons">
+  {{- range $ground := slice "light" "dark" }}
+  <div class="favicon-ground" data-ground="{{ $ground }}">
+    {{- range $size := slice 16 32 }}
+    <img src="{{ $src }}" width="{{ $size }}" height="{{ $size }}" alt="">
+    {{- end }}
+  </div>
+  {{- end }}
+</div>
+{{- end }}

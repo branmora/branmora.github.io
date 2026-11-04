@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="{{ site.Language.Lang }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  {{- partial "site/assets.html" . }}
+  {{- block "head" . }}{{ end }}
+  {{- partial "seo/structured-data.html" . }}
+  {{- partial "site/scripts.html" . }}
+  <title>{{ block "title" . }}{{ partial "site/title.html" . }}{{ end }}</title>
+  {{ partial "site/meta.html" . }}
+  {{- partial "site/social.html" . }}
+</head>
+<body{{ if .Params.sample }} data-sample{{ end }}{{ if eq .Layout "gallery" }} data-gallery{{ end }}>
+  {{- /* The page frame: centred in the window, it grows to size.page and holds the header, the
+     main content, and the footer. The palette dialog sits outside it. */}}
+  <div class="frame" data-frame>
+  {{ partial "site/header.html" . }}
+  {{ if .Params.sample }}<aside data-sample-notice>{{ T "sampleNotice" }}</aside>{{ end }}
+  {{ block "main" . }}{{ end }}
+  {{ partial "site/footer.html" . }}
+  </div>
+  {{ partial "site/palette.html" . }}
+</body>
+</html>

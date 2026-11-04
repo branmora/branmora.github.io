@@ -1,0 +1,17 @@
+{{- /* A project as a card on the projects list (spec 011, DECISIONS/015): the image when it has
+one, the years in mono, the title as the card's one link, and the summary. Context: dict "page" and
+"model", and optionally "level", the title's heading level (2 by default; 3 on home, under its
+section heading). `data-card` marks it as a card for home's checks. */ -}}
+{{- $m := .model }}
+<li class="project-card" data-card>
+  <article>
+    {{- partial "project/image.html" (dict "page" .page "model" $m "class" "project-card-image" "lazy" true) }}
+    <p class="project-card-years">{{ partial "project/years.html" $m.years }}</p>
+    {{- if eq .level 3 }}
+    <h3 class="project-card-title"><a class="quiet-link" href="{{ .page.RelPermalink }}">{{ $m.title }}</a></h3>
+    {{- else }}
+    <h2 class="project-card-title"><a class="quiet-link" href="{{ .page.RelPermalink }}">{{ $m.title }}</a></h2>
+    {{- end }}
+    <p class="project-card-summary">{{ $m.summary }}</p>
+  </article>
+</li>

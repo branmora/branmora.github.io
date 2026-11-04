@@ -1,0 +1,27 @@
+{{- /* Each language's sitemap (spec 007): every page with its language alternates, as Hugo's own
+sitemap lists them, and with a lastmod on every page, its modified date (site/modified.html,
+spec 020). */ -}}
+{{ printf "<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"yes\"?>" | safeHTML }}
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+  xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  {{- range where .Pages "Sitemap.Disable" "ne" true }}
+    {{- if .Permalink }}
+  <url>
+    <loc>{{ .Permalink }}</loc>
+    <lastmod>{{ (partial "site/modified.html" .).Format "2006-01-02T15:04:05-07:00" | safeHTML }}</lastmod>
+    {{- with .Sitemap.ChangeFreq }}
+    <changefreq>{{ . }}</changefreq>
+    {{- end }}
+    {{- if ge .Sitemap.Priority 0.0 }}
+    <priority>{{ .Sitemap.Priority }}</priority>
+    {{- end }}
+    {{- if .IsTranslated }}
+      {{- range .Translations }}
+    <xhtml:link rel="alternate" hreflang="{{ .Language.LanguageCode }}" href="{{ .Permalink }}"/>
+      {{- end }}
+    <xhtml:link rel="alternate" hreflang="{{ .Language.LanguageCode }}" href="{{ .Permalink }}"/>
+    {{- end }}
+  </url>
+    {{- end }}
+  {{- end }}
+</urlset>

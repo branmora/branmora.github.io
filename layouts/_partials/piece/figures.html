@@ -1,0 +1,88 @@
+{{- /*
+  The figure blocks of a post or note (spec 005), one per figure of the resolved model, in order;
+  a note may have none. Each is the design system's figure block (components/figure.html) with
+  the PNG on paper, the CSV as its table, the piece's sources, and the files to download.
+
+  Context: dict "page" (the page) and "model" (its resolved model, content/model.html).
+  The model names files by URL; the CSV is read from the bundle that holds it, which is the
+  translation's when the chart is a fallback. Links use the URL's path, so they work on any host.
+*/ -}}
+{{- $page := .page -}}
+{{- $m := .model -}}
+{{- $bundles := slice $page | append $page.Translations -}}
+{{- range $i, $f := $m.figures -}}
+  {{- $n := add $i 1 -}}
+
+  {{- /* The table: the CSV's header, then each row. The first column names the row and is
+     written as the file writes it; a number elsewhere keeps the decimals the file writes. */ -}}
+  {{- $head := slice -}}
+  {{- $rows := slice -}}
+  {{- range $bundles -}}
+    {{- range .Resources.ByType "text" -}}
+      {{- if and (not $head) (eq .Permalink $f.csv) -}}
+        {{- $data := transform.Unmarshal (dict "delimiter" ",") . -}}
+        {{- $head = index $data 0 -}}
+        {{- range after 1 $data -}}
+          {{- if gt (len (delimit . "" | strings.TrimSpace)) 0 -}}
+            {{- $row := slice (strings.TrimSpace (index . 0)) -}}
+            {{- range after 1 . -}}
+              {{- $cell := strings.TrimSpace . -}}
+              {{- if findRE `^-?[0-9]+(\.[0-9]+)?$` $cell -}}
+                {{- $digits := 0 -}}
+                {{- with index (split $cell ".") 1 }}{{ $digits = len . }}{{ end -}}
+                {{- $row = $row | append (dict "value" (float $cell) "digits" $digits) -}}
+              {{- else -}}
+                {{- $row = $row | append (dict "text" $cell) -}}
+              {{- end -}}
+            {{- end -}}
+            {{- $rows = $rows | append (dict "cells" $row) -}}
+          {{- end -}}
+        {{- end -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+
+  {{- $files := slice (dict "kind" "png" "url" (urls.Parse $f.png).Path) (dict "kind" "csv" "url" (urls.Parse $f.csv).Path) -}}
+  {{- with $f.option -}}
+    {{- $files = $files | append (dict "kind" "json" "url" (urls.Parse .).Path) -}}
+  {{- end -}}
+
+  {{- /* An option that draws a map names its boundary file, which the figure hands charts.js to
+     register under the name the map series draws; the file is published only for such a figure. */ -}}
+  {{- $map := dict -}}
+  {{- with $f.option -}}
+    {{- $url := . -}}
+    {{- range $bundles -}}
+      {{- range .Resources.Match "*.json" -}}
+        {{- if and (not $map) (eq .Permalink $url) -}}
+          {{- $option := transform.Unmarshal .Content -}}
+          {{- $series := $option.series | default slice -}}
+          {{- if reflect.IsMap $series }}{{ $series = slice $series }}{{ end -}}
+          {{- range $series -}}
+            {{- if and (not $map) (reflect.IsMap .) (eq .type "map") .map -}}
+              {{- $name := .map -}}
+              {{- with resources.Get (printf "maps/%s.json" $name) | fingerprint -}}
+                {{- $map = dict "url" .RelPermalink "name" $name -}}
+              {{- end -}}
+            {{- end -}}
+          {{- end -}}
+        {{- end -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+
+  {{- $note := "" -}}
+  {{- if $f.fallback }}{{ $note = T (printf "figureFallback_%s" $f.lang) }}{{ end }}
+  {{ partial "components/figure.html" (dict
+    "id" (printf "figure-%d" $n)
+    "label" (T "figureLabel" (dict "n" $n))
+    "note" $note
+    "image" (dict "src" (urls.Parse $f.png).Path "width" $f.width "height" $f.height "alt" $f.alt)
+    "head" $head
+    "rows" $rows
+    "sources" $m.sources
+    "files" $files
+    "option" (cond (ne $f.option nil) (urls.Parse (string $f.option)).Path "")
+    "map" $map
+  ) }}
+{{- end -}}

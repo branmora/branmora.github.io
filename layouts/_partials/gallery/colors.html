@@ -1,0 +1,35 @@
+{{- /* The current theme's color roles, the two site ramps with their values, and the paper sheet. */ -}}
+{{- $base := os.ReadFile "tokens/base.tokens.json" | transform.Unmarshal -}}
+{{- $site := os.ReadFile "tokens/site.tokens.json" | transform.Unmarshal -}}
+<div class="column colors">
+  <h3 class="swatch-heading">{{ .c.rolesLabel }}</h3>
+  <ul class="swatches">
+    {{- range $role, $token := index $site "theme" "light" }}
+    {{- if and (not (hasPrefix $role "$")) (eq (index $token "$type") "color") }}
+    <li><span class="swatch" style="{{ printf "background: var(--theme-%s)" $role | safeCSS }}"></span><span>{{ $role }}</span></li>
+    {{- end }}
+    {{- end }}
+  </ul>
+  <h3 class="swatch-heading">{{ .c.rampsLabel }}</h3>
+  <div class="ramps">
+  {{- range $ramp := slice "stone" "purple" }}
+  {{- $steps := slice }}
+  {{- range $step, $_ := index $base "color" $ramp }}{{ if not (hasPrefix $step "$") }}{{ $steps = $steps | append (int $step) }}{{ end }}{{ end }}
+  <ul class="swatches ramp">
+    {{- range sort $steps }}
+    {{- $token := index $base "color" $ramp (string .) }}
+    <li><span class="swatch" style="{{ printf "background: var(--color-%s-%d)" $ramp . | safeCSS }}"></span><span>{{ printf "%s %d" $ramp . }}</span><span class="hex">{{ index $token "$value" "hex" }}</span></li>
+    {{- end }}
+  </ul>
+  {{- end }}
+  </div>
+  <h3 class="swatch-heading">{{ .c.paperLabel }}</h3>
+  <figure class="paper-sheet" data-surface="paper">
+    <svg viewBox="0 0 100 40" role="img" aria-labelledby="paper-note" focusable="false">
+      {{- range $i, $h := slice 21 25 29 34 42 }}
+      <rect x="{{ add 4 (mul $i 19) }}" y="{{ sub 40 (mul $h 0.8) }}" width="14" height="{{ mul $h 0.8 }}" fill="currentColor"/>
+      {{- end }}
+    </svg>
+    <figcaption id="paper-note">{{ .c.paperNote }}</figcaption>
+  </figure>
+</div>

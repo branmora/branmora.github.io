@@ -1,0 +1,54 @@
+{{- /*
+The CSS value of one token from tokens/walk.html, or "" for a composite type, which the
+stylesheet leaves out (it has no single CSS value).
+
+An alias, "{group.token}", becomes var(--group-token), so the custom properties keep the
+token files' references instead of copying values.
+*/ -}}
+{{- $v := .value -}}
+{{- $t := .type -}}
+{{- $css := "" -}}
+{{- $generic := slice "serif" "sans-serif" "monospace" "cursive" "fantasy" "system-ui" "ui-serif" "ui-sans-serif" "ui-monospace" "ui-rounded" "math" "emoji" "fangsong" -}}
+{{- $weights := dict "thin" 100 "hairline" 100 "extra-light" 200 "ultra-light" 200 "light" 300 "normal" 400 "regular" 400 "book" 400 "medium" 500 "semi-bold" 600 "demi-bold" 600 "bold" 700 "extra-bold" 800 "ultra-bold" 800 "black" 900 "heavy" 900 "extra-black" 950 "ultra-black" 950 -}}
+{{- if and (reflect.IsMap $v) (isset $v "$ref") -}}
+  {{- $parts := slice -}}
+  {{- range split (strings.TrimPrefix "#" (index $v "$ref")) "/" -}}
+    {{- if and . (ne . "$value") }}{{ $parts = $parts | append . }}{{ end -}}
+  {{- end -}}
+  {{- $css = printf "var(--%s)" (delimit $parts "-") -}}
+{{- else if and (eq (printf "%T" $v) "string") (findRE `^\{[^{}]+\}$` $v) -}}
+  {{- $css = printf "var(--%s)" (replace (strings.TrimSuffix "}" (strings.TrimPrefix "{" $v)) "." "-") -}}
+{{- else if eq $t "color" -}}
+  {{- $space := index $v "colorSpace" -}}
+  {{- $alpha := 1 -}}
+  {{- if isset $v "alpha" }}{{ $alpha = index $v "alpha" }}{{ end -}}
+  {{- if and (index $v "hex") (eq (float $alpha) 1.0) -}}
+    {{- $css = index $v "hex" -}}
+  {{- else -}}
+    {{- $c := index $v "components" -}}
+    {{- $comps := delimit $c " " -}}
+    {{- if in (slice "hsl" "hwb") $space -}}
+      {{- $comps = printf "%v %v%% %v%%" (index $c 0) (index $c 1) (index $c 2) -}}
+    {{- end -}}
+    {{- if in (slice "hsl" "hwb" "lab" "lch" "oklab" "oklch") $space -}}
+      {{- $css = printf "%s(%s / %v)" $space $comps $alpha -}}
+    {{- else -}}
+      {{- $css = printf "color(%s %s / %v)" $space $comps $alpha -}}
+    {{- end -}}
+  {{- end -}}
+{{- else if in (slice "dimension" "duration") $t -}}
+  {{- $css = printf "%v%s" (index $v "value") (index $v "unit") -}}
+{{- else if eq $t "fontFamily" -}}
+  {{- $names := slice -}}
+  {{- range (cond (reflect.IsSlice $v) $v (slice $v)) -}}
+    {{- if in $generic . }}{{ $names = $names | append . }}{{ else }}{{ $names = $names | append (printf "%q" .) }}{{ end -}}
+  {{- end -}}
+  {{- $css = delimit $names ", " -}}
+{{- else if eq $t "fontWeight" -}}
+  {{- $css = printf "%v" (index $weights (printf "%v" $v) | default $v) -}}
+{{- else if eq $t "number" -}}
+  {{- $css = printf "%v" $v -}}
+{{- else if eq $t "cubicBezier" -}}
+  {{- $css = printf "cubic-bezier(%s)" (delimit $v ", ") -}}
+{{- end -}}
+{{- return $css -}}

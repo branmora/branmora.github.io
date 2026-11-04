@@ -1,0 +1,416 @@
+/*
+Gallery: the layout of the design system gallery page only (spec 002). Loaded by
+layouts/gallery.html and by no other page, so it never reaches a production build.
+Like the other stylesheets, every color, font, size, and space is a token property.
+*/
+
+.gallery > header {
+  margin-bottom: var(--space-line-1);
+}
+
+.gallery > header h1 {
+  margin-bottom: var(--space-line-half);
+}
+
+.specimen {
+  padding-top: var(--space-line-2);
+}
+
+.specimen-name h2 {
+  margin: 0;
+  font-family: var(--type-family-ui);
+  font-size: var(--type-size-ui);
+  font-weight: var(--type-weight-strong);
+  line-height: var(--type-leading-body);
+}
+
+.specimen-name .specimen-tokens {
+  margin: 0 0 var(--space-line-half);
+  font-family: var(--type-family-ui);
+  font-size: var(--type-size-ui);
+  line-height: var(--type-leading-ui);
+}
+
+.specimen-name .key {
+  color: var(--theme-muted);
+}
+
+.specimen-name .key::after {
+  content: ":";
+}
+
+.specimen-rule {
+  margin-bottom: var(--space-line-1);
+  color: var(--theme-muted);
+}
+
+.title-sample {
+  margin: 0 0 var(--space-line-half);
+  font-size: var(--type-size-h1);
+  font-weight: var(--type-weight-heading);
+  line-height: var(--type-leading-title);
+  text-wrap: balance;
+}
+
+/* Type scale */
+.scale-row {
+  display: grid;
+  gap: 0;
+  padding-bottom: var(--space-line-half);
+}
+
+.scale-label {
+  color: var(--theme-muted);
+  font-family: var(--type-family-ui);
+  font-size: var(--type-size-small);
+  line-height: var(--type-leading-ui);
+  white-space: pre;
+}
+
+.scale-sample {
+  margin: 0;
+}
+
+[data-step="title"],
+[data-step="h1"],
+[data-step="h2"],
+[data-step="h3"] {
+  font-weight: var(--type-weight-heading);
+  text-wrap: balance;
+}
+
+[data-step="title"] {
+  font-size: var(--type-size-title);
+  line-height: var(--type-leading-title);
+}
+
+[data-step="h1"] {
+  font-size: var(--type-size-h1);
+  line-height: var(--type-leading-title);
+}
+
+[data-step="h2"] {
+  font-size: var(--type-size-h2);
+  line-height: var(--type-leading-heading);
+}
+
+[data-step="h3"] {
+  font-size: var(--type-size-h3);
+  line-height: var(--type-leading-heading);
+}
+
+[data-step="body"] {
+  font-size: var(--type-size-body);
+  line-height: var(--type-leading-body);
+}
+
+[data-step="ui"],
+[data-step="small"] {
+  font-family: var(--type-family-ui);
+  line-height: var(--type-leading-ui);
+  white-space: pre-wrap;
+}
+
+[data-step="ui"] {
+  font-size: var(--type-size-ui);
+}
+
+[data-step="small"] {
+  font-size: var(--type-size-small);
+}
+
+/* Colors */
+.swatch-heading {
+  margin: 0 0 var(--space-line-quarter);
+  font-family: var(--type-family-ui);
+  font-size: var(--type-size-ui);
+  font-weight: var(--type-weight-text);
+  line-height: var(--type-leading-ui);
+  color: var(--theme-muted);
+}
+
+/* Swatches read as rows of a listing: a block of the color, then its name and value. */
+.swatches {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(calc(var(--space-cell-8) * 3), 1fr));
+  gap: 0 var(--space-cell-4);
+  margin: 0 0 var(--space-line-1);
+  padding: 0;
+  list-style: none;
+  font-family: var(--type-family-ui);
+  font-size: var(--type-size-ui);
+  line-height: var(--type-leading-body);
+}
+
+.swatches li {
+  display: grid;
+  grid-template-columns: var(--space-cell-6) max-content 1fr;
+  column-gap: var(--space-cell-2);
+  align-items: center;
+}
+
+.swatch {
+  display: block;
+  height: var(--space-line-half);
+  border: var(--size-rule) solid var(--theme-rule);
+}
+
+/* A ramp runs top to bottom with no gaps, so its steps read as one material. */
+.ramps {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(calc(var(--space-cell-8) * 3), 1fr));
+  column-gap: var(--space-cell-4);
+  align-items: start;
+}
+
+.ramp {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.ramp .swatch {
+  height: var(--space-line-1);
+  border-block-width: 0;
+}
+
+.ramp li:first-child .swatch {
+  border-top-width: var(--size-rule);
+}
+
+.ramp li:last-child .swatch {
+  border-bottom-width: var(--size-rule);
+}
+
+.swatches .hex {
+  color: var(--theme-muted);
+}
+
+.paper-sheet {
+  padding: var(--space-line-half) var(--space-cell-2);
+  border: var(--size-rule) solid var(--theme-rule);
+}
+
+.paper-sheet svg {
+  display: block;
+  width: 100%;
+  max-width: var(--size-gutter);
+  color: var(--theme-accent);
+}
+
+.paper-sheet figcaption {
+  margin-top: var(--space-line-quarter);
+  color: var(--theme-muted);
+}
+
+/* Rules */
+.frame {
+  padding: var(--space-line-half) var(--space-cell-2);
+  border: var(--size-rule) solid var(--theme-rule);
+}
+
+/* Links */
+.link-row a[aria-current="page"] {
+  color: var(--theme-text);
+  text-decoration-color: var(--theme-accent);
+}
+
+/* --- Chart gallery (spec 003) ------------------------------------------------------------- */
+
+/* The two canvases sit side by side, under the rule, as wide as gutter and column together. */
+.chart-specimen {
+  grid-column: 1 / -1;
+  max-width: none;
+  margin: var(--space-line-1) 0 0;
+}
+
+.chart-specimen-title {
+  margin: 0 0 var(--space-line-half);
+  font-weight: var(--type-weight-strong);
+}
+
+.chart-canvases {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-line-1) var(--space-cell-4);
+  align-items: start;
+}
+
+@media (min-width: 56rem) {
+  .chart-canvases {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.chart-canvas-name,
+.chart-footer,
+.chart-data summary {
+  margin: 0 0 var(--space-line-quarter);
+  font-family: var(--type-family-ui);
+  font-size: var(--type-size-ui);
+  line-height: var(--type-leading-ui);
+  color: var(--theme-muted);
+}
+
+/* The frame takes the canvas's shape at the width it is given; the canvas inside keeps its full
+   size and is scaled to fit (charts.js sets --canvas-scale), so what it draws is the PNG. */
+.canvas-frame {
+  position: relative;
+  overflow: hidden;
+  border: var(--size-rule) solid var(--theme-rule);
+}
+
+.canvas-frame > [data-preset] {
+  position: absolute;
+  inset: 0 auto auto 0;
+  transform: scale(var(--canvas-scale, 0.25));
+  transform-origin: 0 0;
+}
+
+.canvas-frame .chart {
+  width: 100%;
+  height: 100%;
+}
+
+/* Without JavaScript there is nothing to draw: the table and the footer carry the figure. */
+:root:not([data-theme]) .chart-canvases {
+  display: none;
+}
+
+.chart-footer {
+  margin-top: var(--space-line-half);
+}
+
+.chart-footer p {
+  margin: 0;
+}
+
+.chart-footer .key {
+  color: var(--theme-muted);
+}
+
+.chart-data {
+  margin-top: var(--space-line-half);
+  max-width: var(--size-measure);
+}
+
+.chart-data summary {
+  cursor: pointer;
+}
+
+.chart-data table {
+  font-variant-numeric: tabular-nums;
+}
+
+.chart-data td {
+  text-align: right;
+}
+
+/* The interactive view: the chart fills its container, up to the widest the view grows. */
+.chart-specimen-subtitle {
+  margin: 0 0 var(--space-line-1);
+  color: var(--theme-muted);
+}
+
+.chart-interactive {
+  max-width: var(--chart-interactive-max-width);
+  margin-bottom: var(--space-line-2);
+}
+
+.chart-toggles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-cell-1);
+  margin-bottom: var(--space-line-half);
+}
+
+:root:not([data-theme]) .chart-interactive {
+  display: none;
+}
+
+/* Chart colors: each contrast set on its own paper, each group a strip of chips with its hex. */
+.chart-color-sets {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(calc(var(--space-cell-8) * 3), 1fr));
+  gap: var(--space-line-1) var(--space-cell-4);
+}
+
+.chart-color-set {
+  padding: var(--space-line-half) var(--space-cell-2);
+  border: var(--size-rule) solid var(--theme-rule);
+  color: var(--theme-text);
+}
+
+.chart-color-name {
+  margin: 0;
+  font-family: var(--type-family-ui);
+  font-size: var(--type-size-ui);
+  line-height: var(--type-leading-ui);
+  color: var(--theme-muted);
+}
+
+.chart-strip {
+  display: flex;
+  height: var(--space-line-1);
+}
+
+.chart-strip span {
+  flex: 1 1 0;
+}
+
+.chart-strip-hex {
+  margin: 0 0 var(--space-line-half);
+  font-family: var(--type-family-ui);
+  font-size: var(--type-size-small);
+  line-height: var(--type-leading-ui);
+  color: var(--theme-muted);
+}
+
+/* Favicon: the icon at 16 and 32px, on the light and the dark surface */
+.favicons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-cell-1);
+}
+
+.favicon-ground {
+  display: flex;
+  align-items: center;
+  gap: var(--space-cell-1);
+  padding: var(--space-cell-1);
+}
+
+.favicon-ground[data-ground="light"] {
+  background: var(--color-stone-50);
+}
+
+.favicon-ground[data-ground="dark"] {
+  background: var(--color-stone-900);
+}
+
+.favicon-ground img {
+  display: block;
+}
+
+/* Site card: each language's 1200x630 preview, scaled to the column, captioned with its code */
+.site-cards {
+  display: grid;
+  gap: var(--space-line-1);
+}
+
+.site-card {
+  margin: 0;
+}
+
+.site-card img {
+  display: block;
+  width: 100%;
+  max-width: var(--size-measure);
+  height: auto;
+  border: var(--size-rule) solid var(--theme-rule);
+}
+
+.site-card figcaption {
+  font-family: var(--type-family-ui);
+  font-size: var(--type-size-ui);
+  line-height: var(--type-leading-ui);
+  color: var(--theme-muted);
+}

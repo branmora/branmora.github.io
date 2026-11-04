@@ -1,0 +1,19 @@
+{{- /* The site footer (spec 010): key: value lines whose keys line up in one column. The author's
+profiles (LinkedIn and GitHub from About's front matter, the one place they are written, and ORCID
+once params.orcid is set), then the license. No theme controls (the header's toggle and the
+palette hold them) and no views line. Context: the page. */ -}}
+{{- $profiles := slice }}
+{{- with site.GetPage "/about" }}
+  {{- range .Params.links }}
+    {{- $profiles = $profiles | append (printf `<a href="%s" rel="me">%s</a>` (.url | htmlEscape) (T (printf "link_%s" .key))) }}
+  {{- end }}
+{{- end }}
+{{- with site.Params.orcid }}
+  {{- $profiles = $profiles | append (printf `<a href="https://orcid.org/%s" rel="me">%s</a>` (. | htmlEscape) (T "link_orcid")) }}
+{{- end }}
+{{- $items := slice }}
+{{- with $profiles }}{{ $items = $items | append (dict "key" (T "footerProfiles") "value" (delimit . " " | safeHTML)) }}{{ end }}
+{{- $items = $items | append (dict "key" (T "meta_license") "value" (printf `<a href="%s" rel="license">%s</a>` (T "licenseURL") (T "licenseName") | safeHTML)) }}
+<footer class="site-footer">
+  {{ partial "components/metadata.html" (dict "items" $items "class" "site-footer-lines") }}
+</footer>

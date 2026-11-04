@@ -1,0 +1,703 @@
+{
+  "$description": "Site tokens: themes, type scale, spacing, sizes, and motion. They alias base.tokens.json. Format: W3C DTCG 2025.10.",
+  "theme": {
+    "$description": "Six role sets with the same keys. The page uses one of the four page themes; the chart sheet uses paper or paper-contrast: the static canvases in every page theme, an interactive chart on a light page (DECISIONS/012). The build exposes the current theme's roles as --theme-<role>.",
+    "light": {
+      "$description": "Paper ground, graphite ink",
+      "surface": {
+        "$type": "color",
+        "$value": "{color.stone.50}"
+      },
+      "raised": {
+        "$type": "color",
+        "$value": "{color.stone.100}"
+      },
+      "text": {
+        "$type": "color",
+        "$value": "{color.stone.900}"
+      },
+      "muted": {
+        "$type": "color",
+        "$value": "{color.stone.600}"
+      },
+      "rule": {
+        "$type": "color",
+        "$value": "{color.stone.200}"
+      },
+      "link": {
+        "$type": "color",
+        "$value": "{color.purple.600}"
+      },
+      "underline": {
+        "$type": "color",
+        "$value": "{color.accent}"
+      },
+      "accent": {
+        "$type": "color",
+        "$value": "{color.accent}"
+      },
+      "focus": {
+        "$type": "color",
+        "$value": "{color.accent}"
+      },
+      "chip": {
+        "$type": "color",
+        "$value": "{color.purple.600}"
+      },
+      "on-chip": {
+        "$type": "color",
+        "$value": "{color.stone.0}"
+      },
+      "selection": {
+        "$type": "color",
+        "$value": "{color.purple.100}"
+      },
+      "glow": {
+        "$type": "color",
+        "$value": "{color.purple.500}"
+      },
+      "focus-width": {
+        "$type": "dimension",
+        "$value": {
+          "value": 2,
+          "unit": "px"
+        }
+      },
+      "underline-width": {
+        "$type": "dimension",
+        "$value": {
+          "value": 1,
+          "unit": "px"
+        }
+      }
+    },
+    "light-contrast": {
+      "$description": "Light, high contrast: 7:1 text, underlined links, heavier focus",
+      "surface": {
+        "$type": "color",
+        "$value": "{color.stone.0}"
+      },
+      "raised": {
+        "$type": "color",
+        "$value": "{color.stone.50}"
+      },
+      "text": {
+        "$type": "color",
+        "$value": "{color.stone.950}"
+      },
+      "muted": {
+        "$type": "color",
+        "$value": "{color.stone.700}"
+      },
+      "rule": {
+        "$type": "color",
+        "$value": "{color.stone.500}"
+      },
+      "link": {
+        "$type": "color",
+        "$value": "{color.purple.700}"
+      },
+      "underline": {
+        "$type": "color",
+        "$value": "{color.purple.700}"
+      },
+      "accent": {
+        "$type": "color",
+        "$value": "{color.purple.700}"
+      },
+      "focus": {
+        "$type": "color",
+        "$value": "{color.purple.700}"
+      },
+      "chip": {
+        "$type": "color",
+        "$value": "{color.purple.700}"
+      },
+      "on-chip": {
+        "$type": "color",
+        "$value": "{color.stone.0}"
+      },
+      "selection": {
+        "$type": "color",
+        "$value": "{color.purple.50}"
+      },
+      "glow": {
+        "$type": "color",
+        "$value": "{color.purple.100}"
+      },
+      "focus-width": {
+        "$type": "dimension",
+        "$value": {
+          "value": 3,
+          "unit": "px"
+        }
+      },
+      "underline-width": {
+        "$type": "dimension",
+        "$value": {
+          "value": 2,
+          "unit": "px"
+        }
+      }
+    },
+    "dark": {
+      "$description": "Graphite ground, paper ink",
+      "surface": {
+        "$type": "color",
+        "$value": "{color.stone.900}"
+      },
+      "raised": {
+        "$type": "color",
+        "$value": "{color.stone.850}"
+      },
+      "text": {
+        "$type": "color",
+        "$value": "{color.stone.100}"
+      },
+      "muted": {
+        "$type": "color",
+        "$value": "{color.stone.400}"
+      },
+      "rule": {
+        "$type": "color",
+        "$value": "{color.stone.800}"
+      },
+      "link": {
+        "$type": "color",
+        "$value": "{color.purple.300}"
+      },
+      "underline": {
+        "$type": "color",
+        "$value": "{color.purple.400}"
+      },
+      "accent": {
+        "$type": "color",
+        "$value": "{color.purple.400}"
+      },
+      "focus": {
+        "$type": "color",
+        "$value": "{color.purple.400}"
+      },
+      "chip": {
+        "$type": "color",
+        "$value": "{color.purple.300}"
+      },
+      "on-chip": {
+        "$type": "color",
+        "$value": "{color.stone.950}"
+      },
+      "selection": {
+        "$type": "color",
+        "$value": "{color.purple.800}"
+      },
+      "glow": {
+        "$type": "color",
+        "$value": "{color.purple.600}"
+      },
+      "focus-width": {
+        "$type": "dimension",
+        "$value": {
+          "value": 2,
+          "unit": "px"
+        }
+      },
+      "underline-width": {
+        "$type": "dimension",
+        "$value": {
+          "value": 1,
+          "unit": "px"
+        }
+      }
+    },
+    "dark-contrast": {
+      "$description": "Dark, high contrast: 7:1 text, underlined links, heavier focus",
+      "surface": {
+        "$type": "color",
+        "$value": "{color.stone.950}"
+      },
+      "raised": {
+        "$type": "color",
+        "$value": "{color.stone.900}"
+      },
+      "text": {
+        "$type": "color",
+        "$value": "{color.stone.0}"
+      },
+      "muted": {
+        "$type": "color",
+        "$value": "{color.stone.300}"
+      },
+      "rule": {
+        "$type": "color",
+        "$value": "{color.stone.500}"
+      },
+      "link": {
+        "$type": "color",
+        "$value": "{color.purple.200}"
+      },
+      "underline": {
+        "$type": "color",
+        "$value": "{color.purple.200}"
+      },
+      "accent": {
+        "$type": "color",
+        "$value": "{color.purple.200}"
+      },
+      "focus": {
+        "$type": "color",
+        "$value": "{color.purple.200}"
+      },
+      "chip": {
+        "$type": "color",
+        "$value": "{color.purple.200}"
+      },
+      "on-chip": {
+        "$type": "color",
+        "$value": "{color.stone.950}"
+      },
+      "selection": {
+        "$type": "color",
+        "$value": "{color.purple.800}"
+      },
+      "glow": {
+        "$type": "color",
+        "$value": "{color.purple.900}"
+      },
+      "focus-width": {
+        "$type": "dimension",
+        "$value": {
+          "value": 3,
+          "unit": "px"
+        }
+      },
+      "underline-width": {
+        "$type": "dimension",
+        "$value": {
+          "value": 2,
+          "unit": "px"
+        }
+      }
+    },
+    "paper": {
+      "$description": "The light chart sheet: the static canvases in every page theme, and an interactive chart on a light page",
+      "surface": {
+        "$type": "color",
+        "$value": "{color.stone.0}"
+      },
+      "raised": {
+        "$type": "color",
+        "$value": "{color.stone.50}"
+      },
+      "text": {
+        "$type": "color",
+        "$value": "{color.stone.900}"
+      },
+      "muted": {
+        "$type": "color",
+        "$value": "{color.stone.600}"
+      },
+      "rule": {
+        "$type": "color",
+        "$value": "{color.stone.200}"
+      },
+      "link": {
+        "$type": "color",
+        "$value": "{color.purple.600}"
+      },
+      "underline": {
+        "$type": "color",
+        "$value": "{color.accent}"
+      },
+      "accent": {
+        "$type": "color",
+        "$value": "{color.accent}"
+      },
+      "focus": {
+        "$type": "color",
+        "$value": "{color.accent}"
+      },
+      "chip": {
+        "$type": "color",
+        "$value": "{color.purple.600}"
+      },
+      "on-chip": {
+        "$type": "color",
+        "$value": "{color.stone.0}"
+      },
+      "selection": {
+        "$type": "color",
+        "$value": "{color.purple.100}"
+      },
+      "glow": {
+        "$type": "color",
+        "$value": "{color.purple.500}"
+      },
+      "focus-width": {
+        "$type": "dimension",
+        "$value": {
+          "value": 2,
+          "unit": "px"
+        }
+      },
+      "underline-width": {
+        "$type": "dimension",
+        "$value": {
+          "value": 1,
+          "unit": "px"
+        }
+      }
+    },
+    "paper-contrast": {
+      "$description": "The chart sheet in the high-contrast themes",
+      "surface": {
+        "$type": "color",
+        "$value": "{color.white}"
+      },
+      "raised": {
+        "$type": "color",
+        "$value": "{color.stone.0}"
+      },
+      "text": {
+        "$type": "color",
+        "$value": "{color.stone.950}"
+      },
+      "muted": {
+        "$type": "color",
+        "$value": "{color.stone.700}"
+      },
+      "rule": {
+        "$type": "color",
+        "$value": "{color.stone.500}"
+      },
+      "link": {
+        "$type": "color",
+        "$value": "{color.purple.700}"
+      },
+      "underline": {
+        "$type": "color",
+        "$value": "{color.purple.700}"
+      },
+      "accent": {
+        "$type": "color",
+        "$value": "{color.purple.700}"
+      },
+      "focus": {
+        "$type": "color",
+        "$value": "{color.purple.700}"
+      },
+      "chip": {
+        "$type": "color",
+        "$value": "{color.purple.700}"
+      },
+      "on-chip": {
+        "$type": "color",
+        "$value": "{color.stone.0}"
+      },
+      "selection": {
+        "$type": "color",
+        "$value": "{color.purple.50}"
+      },
+      "glow": {
+        "$type": "color",
+        "$value": "{color.purple.100}"
+      },
+      "focus-width": {
+        "$type": "dimension",
+        "$value": {
+          "value": 3,
+          "unit": "px"
+        }
+      },
+      "underline-width": {
+        "$type": "dimension",
+        "$value": {
+          "value": 2,
+          "unit": "px"
+        }
+      }
+    }
+  },
+  "type": {
+    "$description": "Type roles. Sizes follow Bringhurst's classic scale (12, 14, 18, 21, 24, 36, 48 px) from a 16px root.",
+    "family": {
+      "ui": {
+        "$value": "{font.family.mono}"
+      },
+      "reading": {
+        "$value": "{font.family.sans}"
+      }
+    },
+    "weight": {
+      "text": {
+        "$value": "{font.weight.regular}"
+      },
+      "strong": {
+        "$value": "{font.weight.semibold}"
+      },
+      "heading": {
+        "$value": "{font.weight.semibold}"
+      }
+    },
+    "size": {
+      "$type": "dimension",
+      "small": {
+        "$value": {
+          "value": 0.75,
+          "unit": "rem"
+        },
+        "$description": "12px: key caps, footnote marks"
+      },
+      "ui": {
+        "$value": {
+          "value": 0.875,
+          "unit": "rem"
+        },
+        "$description": "14px: navigation, metadata, list rows, captions, code"
+      },
+      "body": {
+        "$value": {
+          "value": 1.125,
+          "unit": "rem"
+        },
+        "$description": "18px: reading text"
+      },
+      "h3": {
+        "$value": {
+          "value": 1.3125,
+          "unit": "rem"
+        },
+        "$description": "21px"
+      },
+      "h2": {
+        "$value": {
+          "value": 1.5,
+          "unit": "rem"
+        },
+        "$description": "24px"
+      },
+      "h1": {
+        "$value": {
+          "value": 2.25,
+          "unit": "rem"
+        },
+        "$description": "36px: the title on narrow screens"
+      },
+      "title": {
+        "$value": {
+          "value": 3,
+          "unit": "rem"
+        },
+        "$description": "48px: the title from the wide breakpoint"
+      },
+      "display": {
+        "$value": {
+          "value": 4.5,
+          "unit": "rem"
+        },
+        "$description": "72px: home's hero name from the wide breakpoint (DECISIONS/015)"
+      }
+    },
+    "leading": {
+      "$type": "number",
+      "body": {
+        "$value": 1.5556,
+        "$description": "28px on 18px: one line"
+      },
+      "ui": {
+        "$value": 1.5
+      },
+      "heading": {
+        "$value": 1.25
+      },
+      "title": {
+        "$value": 1.125
+      },
+      "display": {
+        "$value": 1
+      }
+    }
+  },
+  "space": {
+    "$type": "dimension",
+    "$description": "Counted like a TUI: lines vertically (the body leading, 28px), cells horizontally (8px).",
+    "line": {
+      "quarter": {
+        "$value": {
+          "value": 0.4375,
+          "unit": "rem"
+        }
+      },
+      "half": {
+        "$value": {
+          "value": 0.875,
+          "unit": "rem"
+        }
+      },
+      "1": {
+        "$value": {
+          "value": 1.75,
+          "unit": "rem"
+        },
+        "$description": "One line of body text"
+      },
+      "2": {
+        "$value": {
+          "value": 3.5,
+          "unit": "rem"
+        }
+      },
+      "3": {
+        "$value": {
+          "value": 5.25,
+          "unit": "rem"
+        }
+      },
+      "4": {
+        "$value": {
+          "value": 7,
+          "unit": "rem"
+        }
+      }
+    },
+    "cell": {
+      "half": {
+        "$value": {
+          "value": 0.25,
+          "unit": "rem"
+        },
+        "$description": "Half a cell: padding inside inline code and key caps"
+      },
+      "1": {
+        "$value": {
+          "value": 0.5,
+          "unit": "rem"
+        },
+        "$description": "One cell"
+      },
+      "2": {
+        "$value": {
+          "value": 1,
+          "unit": "rem"
+        },
+        "$description": "The phone gutter"
+      },
+      "3": {
+        "$value": {
+          "value": 1.5,
+          "unit": "rem"
+        }
+      },
+      "4": {
+        "$value": {
+          "value": 2,
+          "unit": "rem"
+        }
+      },
+      "6": {
+        "$value": {
+          "value": 3,
+          "unit": "rem"
+        }
+      },
+      "8": {
+        "$value": {
+          "value": 4,
+          "unit": "rem"
+        }
+      }
+    }
+  },
+  "size": {
+    "$type": "dimension",
+    "rule": {
+      "$value": {
+        "value": 1,
+        "unit": "px"
+      },
+      "$description": "Every rule is 1px"
+    },
+    "bar": {
+      "$value": {
+        "value": 0.125,
+        "unit": "rem"
+      },
+      "$description": "The accent bar beside the current item"
+    },
+    "focus-offset": {
+      "$value": {
+        "value": 2,
+        "unit": "px"
+      }
+    },
+    "underline-offset": {
+      "$value": {
+        "value": 0.1875,
+        "unit": "rem"
+      }
+    },
+    "measure": {
+      "$value": {
+        "value": 38,
+        "unit": "rem"
+      },
+      "$description": "The reading column, about 65 characters of body text"
+    },
+    "gutter": {
+      "$value": {
+        "value": 12,
+        "unit": "rem"
+      },
+      "$description": "The metadata gutter beside the reading column on wide screens"
+    },
+    "page": {
+      "$value": {
+        "value": 80,
+        "unit": "rem"
+      },
+      "$description": "The widest the page frame grows; the frame is centred in the window"
+    },
+    "breakpoint": {
+      "wide": {
+        "$value": {
+          "value": 56,
+          "unit": "rem"
+        },
+        "$description": "Where the gutter opens beside the text and the title grows to type.size.title. Media queries cannot read custom properties, so stylesheets repeat this value."
+      }
+    }
+  },
+  "motion": {
+    "duration": {
+      "$type": "duration",
+      "quick": {
+        "$value": {
+          "value": 120,
+          "unit": "ms"
+        }
+      },
+      "base": {
+        "$value": {
+          "value": 200,
+          "unit": "ms"
+        }
+      },
+      "spring": {
+        "$value": {
+          "value": 360,
+          "unit": "ms"
+        },
+        "$description": "The hero's rotating word"
+      }
+    },
+    "easing": {
+      "$type": "cubicBezier",
+      "standard": {
+        "$value": [0.2, 0, 0, 1]
+      },
+      "spring": {
+        "$value": [0.3, 1.45, 0.55, 1],
+        "$description": "A short spring: overshoots a little, then settles"
+      }
+    }
+  }
+}

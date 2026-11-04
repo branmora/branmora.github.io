@@ -1,0 +1,65 @@
+{{- /*
+  The page of a post or a note (spec 005). One template serves both; a note's extra room is
+  structure (headings, footnotes, any number of figures), not a wider column.
+
+  Context: dict "page" (the page) and "model" (its resolved model, content/model.html).
+  The piece is one .track: what the author wrote sits in the column, what the site says about
+  it sits in the mono gutter or in mono lines.
+*/ -}}
+{{- $page := .page -}}
+{{- $m := .model -}}
+
+{{- /* The languages line: the page's own language, then each translation as a link to it. */ -}}
+{{- $languages := slice (T (printf "language_%s" $m.lang)) -}}
+{{- range $page.Translations -}}
+  {{- $languages = $languages | append (printf `<a href="%s" hreflang="%s">%s</a>` .RelPermalink .Language.Lang (T (printf "language_%s" .Language.Lang))) -}}
+{{- end -}}
+
+{{- $topics := slice -}}
+{{- /* Each topic links its topic view in this language (spec 006, content/_content.gotmpl). */ -}}
+{{- range $m.topics -}}
+  {{- $name := .name | htmlEscape -}}
+  {{- with partialCached "topics/page.html" .slug .slug site.Language.Lang -}}
+    {{- $name = printf `<a href="%s">%s</a>` .RelPermalink $name -}}
+  {{- end -}}
+  {{- $topics = $topics | append $name -}}
+{{- end -}}
+
+{{- $items := slice
+  (dict "key" (T "meta_date") "date" $m.date)
+  (dict "key" (T "meta_kind") "value" (T (printf "kind_%s" $m.kind)))
+  (dict "key" (T "topicsLabel") "value" (delimit $topics "\n" | safeHTML))
+  (dict "key" (T "meta_languages") "value" (delimit $languages "\n" | safeHTML))
+-}}
+{{- with $m.linkedin -}}
+  {{- $items = $items | append (dict "key" (T "meta_linkedin") "value" (printf `<a href="%s">%s</a>` (. | htmlEscape) (T "linkedinVersion") | safeHTML)) -}}
+{{- end }}
+{{- /* A piece with an interactive chart hands charts.js the chart themes and tokens. */ -}}
+{{- $interactive := false -}}
+{{- range $m.figures }}{{ if .option }}{{ $interactive = true }}{{ end }}{{ end }}
+<main class="track piece" data-kind="{{ $m.kind }}" data-pagefind-body data-pagefind-meta="kind:{{ T (printf "kind_%s" $m.kind) }}"{{ if $interactive }} data-chart-themes="{{ partialCached "charts/themes.html" $page "charts" | jsonify }}"{{ end }}>
+  <h1 class="column">{{ $m.title }}</h1>
+  {{ partial "components/metadata.html" (dict "items" $items "class" "gutter piece-meta") }}
+  <div class="column prose">
+    {{ $page.Content }}
+  </div>
+  {{- with $m.figures }}
+  <div class="column wide piece-figures">
+    {{- partial "piece/figures.html" (dict "page" $page "model" $m) }}
+  </div>
+  {{- end }}
+  {{- /* A post led by an image (spec 019) shows it where the chart would be: no label, no paper,
+     no panels; the image in a hairline, as a project's image and a note's text image sit. */}}
+  {{- with $m.image }}
+  <figure class="column wide piece-image">
+    <img src="{{ (urls.Parse .src).Path }}" width="{{ .width }}" height="{{ .height }}" alt="{{ .alt }}" decoding="async">
+  </figure>
+  {{- end }}
+  {{- /* The method, reproduce, and cite blocks (#85), in the column, before the license. */}}
+  {{- partial "piece/apparatus.html" (dict "page" $page "model" $m) }}
+  {{ partial "components/metadata.html" (dict "items" (slice (dict "key" (T "meta_license") "value" (printf `<a href="%s" rel="license">%s</a>` (T "licenseURL") (T "licenseName") | safeHTML))) "class" "column piece-license") }}
+  {{- if $interactive }}
+  <script type="application/json" id="chart-tokens">{{ partialCached "charts/values.html" $page "chart-values" | jsonify | safeJS }}</script>
+  {{- end }}
+</main>
+{{- /**/ -}}

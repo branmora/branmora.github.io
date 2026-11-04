@@ -1,0 +1,16 @@
+{{- /* The page's `<title>` (specs 007 and 020), at most 60 characters, the site's name included.
+Home: the site's name and the start of the approved bio line (homeTitle). Any other page: its
+`short_title` when it sets one (a piece or a project), otherwise its title, then ` · ` and the site's
+name; a page with no title is the site's name alone. content/validate-sharing.html checks that a
+piece's or project's title fits. The heading, lists, cards, link previews, feeds, llms.txt, and
+structured data keep the full title. Context: the page. Returns a string. */ -}}
+{{- $site := T "siteTitle" -}}
+{{- $title := $site -}}
+{{- if .IsHome -}}
+  {{- $title = printf "%s · %s" $site (T "homeTitle") -}}
+{{- else -}}
+  {{- $own := .Title -}}
+  {{- with .Params.short_title -}}{{- $own = . -}}{{- end -}}
+  {{- with $own -}}{{- $title = printf "%s · %s" . $site -}}{{- end -}}
+{{- end -}}
+{{- return $title -}}

@@ -1,0 +1,7 @@
+{{- /* A stylesheet as the site publishes it (spec 020): minified in the production build, so it holds
+no comments and no indentation, and readable in the others, where some checks read its comments;
+fingerprinted in every build. Context: the CSS resource. Returns the published resource. */ -}}
+{{- $css := . -}}
+{{- if hugo.IsProduction -}}{{- $css = $css | minify -}}{{- end -}}
+{{- $css = $css | fingerprint -}}
+{{- return $css -}}

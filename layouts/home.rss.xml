@@ -1,0 +1,32 @@
+{{- /* The language's feed (spec 007): its posts and notes, newest first. The channel's words come
+from the language's string file. */ -}}
+{{- $pages := where site.RegularPages "Params.type" "in" (slice "post" "note") -}}
+{{- printf "<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"yes\"?>" | safeHTML }}
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>{{ T "siteTitle" }}</title>
+    <link>{{ .Permalink }}</link>
+    <description>{{ T "siteDescription" }}</description>
+    <language>{{ site.Language.Lang }}</language>
+    {{- with $pages.ByDate.Reverse }}
+    <lastBuildDate>{{ (index . 0).Date.Format "Mon, 02 Jan 2006 15:04:05 -0700" | safeHTML }}</lastBuildDate>
+    {{- end }}
+    {{- with .OutputFormats.Get "rss" }}
+    <atom:link href="{{ .Permalink }}" rel="self" type="application/rss+xml" />
+    {{- end }}
+    {{- range $pages.ByDate.Reverse }}
+    <item>
+      {{- /* The full title, escaped as XML text needs: only &, <, and >, so an apostrophe stays one.
+         The template engine reads <title> as HTML's title element and would escape it again, so the
+         element is written whole. */}}
+      {{ printf "<title>%s</title>" (replace (replace (replace .Title "&" "&amp;") "<" "&lt;") ">" "&gt;") | safeHTML }}
+      <link>{{ .Permalink }}</link>
+      <guid>{{ .Permalink }}</guid>
+      <pubDate>{{ .Date.Format "Mon, 02 Jan 2006 15:04:05 -0700" | safeHTML }}</pubDate>
+      {{- with .Summary | plainify | htmlUnescape | strings.TrimSpace }}
+      <description>{{ . }}</description>
+      {{- end }}
+    </item>
+    {{- end }}
+  </channel>
+</rss>

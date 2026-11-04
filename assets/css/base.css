@@ -1,0 +1,289 @@
+/*
+Base: the defaults every element starts from, before any component or template.
+
+Every color, font, size, and space here is a custom property from the generated tokens
+stylesheet; no raw value is allowed (see DESIGN.md). Two voices: --type-family-reading (Plex
+Sans) for what the author wrote, --type-family-ui (Plex Mono) for what the interface says.
+Vertical space is counted in lines (--space-line-*), horizontal space in cells (--space-cell-*).
+*/
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  border-radius: 0;
+}
+
+html {
+  color-scheme: var(--theme-color-scheme);
+  background: var(--theme-surface);
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--theme-surface);
+  color: var(--theme-text);
+  font-family: var(--type-family-reading);
+  font-size: var(--type-size-body);
+  font-weight: var(--type-weight-text);
+  line-height: var(--type-leading-body);
+  overflow-wrap: break-word;
+}
+
+/* The page frame sits in the middle of the window and stops growing at size.page, gutters
+   included. It centres; the text inside it does not: prose keeps a left edge and the measure,
+   and the extra width goes to figures, tables, and home's columns. */
+[data-frame] {
+  max-width: var(--size-page);
+  margin-inline: auto;
+  padding: var(--space-line-1) var(--space-cell-2) var(--space-line-2);
+}
+
+@media (min-width: 56rem) {
+  [data-frame] {
+    padding-inline: var(--space-cell-6);
+  }
+}
+
+/* The reading column: text never runs wider than the measure. */
+main > * {
+  max-width: var(--size-measure);
+}
+
+/* Headings: the author's voice, set tight and left. */
+h1,
+h2,
+h3,
+h4 {
+  font-weight: var(--type-weight-heading);
+  line-height: var(--type-leading-heading);
+  text-wrap: balance;
+}
+
+h1 {
+  margin: var(--space-line-2) 0 var(--space-line-1);
+  font-size: var(--type-size-h1);
+  line-height: var(--type-leading-title);
+}
+
+@media (min-width: 56rem) {
+  h1 {
+    font-size: var(--type-size-title);
+  }
+}
+
+h2 {
+  margin: var(--space-line-2) 0 var(--space-line-half);
+  font-size: var(--type-size-h2);
+}
+
+h3 {
+  margin: var(--space-line-1) 0 var(--space-line-quarter);
+  font-size: var(--type-size-h3);
+}
+
+h4 {
+  margin: var(--space-line-1) 0 0;
+  font-size: var(--type-size-body);
+}
+
+p,
+ul,
+ol,
+dl,
+blockquote,
+pre,
+table,
+figure,
+[data-sample-notice] {
+  margin: 0 0 var(--space-line-1);
+}
+
+ul,
+ol {
+  padding-inline-start: var(--space-cell-3);
+}
+
+blockquote {
+  padding-inline-start: var(--space-cell-3);
+  border-inline-start: var(--size-rule) solid var(--theme-rule);
+}
+
+strong,
+b {
+  font-weight: var(--type-weight-strong);
+}
+
+/* Links: the link ink, underlined in the accent; the underline darkens to the ink on hover. */
+a {
+  color: var(--theme-link);
+  text-decoration-line: underline;
+  text-decoration-color: var(--theme-underline);
+  text-decoration-thickness: var(--theme-underline-width);
+  text-underline-offset: var(--size-underline-offset);
+}
+
+a:hover {
+  text-decoration-color: currentColor;
+}
+
+/* Every interactive element shows where focus is. */
+:focus-visible {
+  outline: var(--theme-focus-width) solid var(--theme-focus);
+  outline-offset: var(--size-focus-offset);
+}
+
+::selection {
+  background: var(--theme-selection);
+  color: var(--theme-text);
+}
+
+/* Rules are 1px and separate the interface from content. */
+hr {
+  margin: var(--space-line-1) 0;
+  border: 0;
+  border-top: var(--size-rule) solid var(--theme-rule);
+}
+
+/* The interface voice. */
+nav,
+time,
+small,
+figcaption,
+code,
+kbd,
+samp,
+pre,
+[data-sample-notice] {
+  font-family: var(--type-family-ui);
+  font-size: var(--type-size-ui);
+  line-height: var(--type-leading-ui);
+}
+
+nav a + a {
+  margin-inline-start: var(--space-cell-2);
+}
+
+small,
+figcaption,
+[data-sample-notice] {
+  color: var(--theme-muted);
+}
+
+code,
+kbd,
+samp {
+  padding: 0 var(--space-cell-half);
+  background: var(--theme-raised);
+}
+
+pre {
+  padding: var(--space-line-half) var(--space-cell-2);
+  overflow-x: auto;
+  background: var(--theme-raised);
+}
+
+pre code {
+  padding: 0;
+  background: transparent;
+}
+
+table {
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+th {
+  text-align: start;
+  font-weight: var(--type-weight-text);
+}
+
+/* The rule under a table's head separates the labels from the data. */
+thead th {
+  font-weight: var(--type-weight-strong);
+  border-bottom: var(--size-rule) solid var(--theme-rule);
+}
+
+th,
+td {
+  padding: var(--space-line-quarter) var(--space-cell-2) var(--space-line-quarter) 0;
+  vertical-align: top;
+}
+
+/* A surface that carries its own theme, such as the chart's paper sheet. */
+[data-surface] {
+  background: var(--theme-surface);
+  color: var(--theme-text);
+}
+
+/* Buttons speak in the interface voice: square, 1px rule, no fill until pressed. */
+button {
+  margin: 0;
+  padding: 0 var(--space-cell-1);
+  border: var(--size-rule) solid var(--theme-rule);
+  background: transparent;
+  color: var(--theme-text);
+  font-family: var(--type-family-ui);
+  font-size: var(--type-size-ui);
+  line-height: var(--type-leading-ui);
+  cursor: pointer;
+}
+
+button:hover {
+  border-color: var(--theme-muted);
+}
+
+button[aria-pressed="true"] {
+  border-color: var(--theme-accent);
+  background: var(--theme-raised);
+  font-weight: var(--type-weight-strong);
+}
+
+img,
+svg,
+video,
+canvas {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Moving between pages (spec 010, DECISIONS/015): a cross-document view transition, in answer to
+   following a link. The header holds still as the page's fixed ground, and only what changes
+   crossfades: the old page leaves in duration.quick, the new one arrives in duration.base, on
+   easing.standard. No slide, no scale. Under reduced motion the rule is absent, so no transition
+   runs and the new page simply appears. */
+@media (prefers-reduced-motion: no-preference) {
+  /* One line: Hugo's minifier keeps an unknown at-rule's block as written. */
+  @view-transition { navigation: auto; }
+
+  .site-header {
+    view-transition-name: site-header;
+  }
+
+  ::view-transition-group(site-header) {
+    animation: none;
+  }
+
+  ::view-transition-old(root) {
+    animation-duration: var(--motion-duration-quick);
+    animation-timing-function: var(--motion-easing-standard);
+  }
+
+  ::view-transition-new(root) {
+    animation-duration: var(--motion-duration-base);
+    animation-timing-function: var(--motion-easing-standard);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0s !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0s !important;
+    scroll-behavior: auto !important;
+  }
+}

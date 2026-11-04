@@ -1,0 +1,697 @@
+{
+  "$description": "Chart tokens (spec 003, spec 008). Every color aliases tokens/base.tokens.json, so this file copies with the base file alone. Groups that differ by theme hold four sets: standard (on paper, stone 0) and high (on white) for light paper, which every static canvas uses; dark-standard and dark-high (both on stone 950) for an interactive chart on a dark page (DECISIONS/012). Format: W3C DTCG 2025.10.",
+  "chart": {
+    "surface": {
+      "$type": "color",
+      "$description": "The paper the chart is drawn on, and the theme's backgroundColor",
+      "standard": {
+        "$value": "{color.stone.0}"
+      },
+      "high": {
+        "$value": "{color.white}"
+      },
+      "dark-standard": {
+        "$value": "{color.stone.950}"
+      },
+      "dark-high": {
+        "$value": "{color.stone.950}"
+      }
+    },
+    "ink": {
+      "$type": "color",
+      "$description": "Chart chrome: text (also the category names of bar and dot-and-range charts), muted text (subtitle, value and time axis labels, footer), gridlines, and the baseline at zero",
+      "standard": {
+        "text": {
+          "$value": "{color.stone.900}"
+        },
+        "muted": {
+          "$value": "{color.stone.600}"
+        },
+        "grid": {
+          "$value": "{color.stone.200}"
+        },
+        "baseline": {
+          "$value": "{color.stone.900}"
+        }
+      },
+      "high": {
+        "text": {
+          "$value": "{color.stone.950}"
+        },
+        "muted": {
+          "$value": "{color.stone.700}"
+        },
+        "grid": {
+          "$value": "{color.stone.300}"
+        },
+        "baseline": {
+          "$value": "{color.stone.950}"
+        }
+      },
+      "dark-standard": {
+        "text": {
+          "$value": "{color.stone.100}"
+        },
+        "muted": {
+          "$value": "{color.stone.400}"
+        },
+        "grid": {
+          "$value": "{color.stone.800}"
+        },
+        "baseline": {
+          "$value": "{color.stone.100}"
+        }
+      },
+      "dark-high": {
+        "text": {
+          "$value": "{color.stone.0}"
+        },
+        "muted": {
+          "$value": "{color.stone.300}"
+        },
+        "grid": {
+          "$value": "{color.stone.700}"
+        },
+        "baseline": {
+          "$value": "{color.stone.0}"
+        }
+      }
+    },
+    "highlight": {
+      "$type": "color",
+      "$description": "The one series the title is about. mark draws it; label is its direct label, a text-safe step of the same hue (4.5:1 in the standard sets, 7:1 in the high ones). On dark paper both come from the lavender end of the purple ramp, lighter than the accent.",
+      "standard": {
+        "mark": {
+          "$value": "{color.accent}",
+          "$description": "The site accent, #6b50ff"
+        },
+        "label": {
+          "$value": "{color.purple.600}"
+        }
+      },
+      "high": {
+        "mark": {
+          "$value": "{color.purple.700}"
+        },
+        "label": {
+          "$value": "{color.purple.700}"
+        }
+      },
+      "dark-standard": {
+        "mark": {
+          "$value": "{color.purple.400}",
+          "$description": "The dark page's accent, #a17cff"
+        },
+        "label": {
+          "$value": "{color.purple.300}",
+          "$description": "The dark page's link, Charm's lavender #c89cff"
+        }
+      },
+      "dark-high": {
+        "mark": {
+          "$value": "{color.purple.300}"
+        },
+        "label": {
+          "$value": "{color.purple.300}"
+        }
+      }
+    },
+    "context": {
+      "$type": "color",
+      "$description": "Every other series: gray that recedes. mark draws lines, dots and bars; label is a muted direct label; range draws the bar between the dots of a dot-and-range chart, and the zoom slider's data background. It stays under 3:1 in the standard sets, light and dark, so it recedes.",
+      "standard": {
+        "mark": {
+          "$value": "{color.stone.400}"
+        },
+        "label": {
+          "$value": "{color.stone.600}"
+        },
+        "range": {
+          "$value": "{color.stone.200}"
+        }
+      },
+      "high": {
+        "mark": {
+          "$value": "{color.stone.500}"
+        },
+        "label": {
+          "$value": "{color.stone.700}"
+        },
+        "range": {
+          "$value": "{color.stone.300}"
+        }
+      },
+      "dark-standard": {
+        "mark": {
+          "$value": "{color.stone.700}"
+        },
+        "label": {
+          "$value": "{color.stone.400}"
+        },
+        "range": {
+          "$value": "{color.stone.800}"
+        }
+      },
+      "dark-high": {
+        "mark": {
+          "$value": "{color.stone.500}"
+        },
+        "label": {
+          "$value": "{color.stone.300}"
+        },
+        "range": {
+          "$value": "{color.stone.700}"
+        }
+      }
+    },
+    "categorical": {
+      "$type": "color",
+      "$description": "Only when several named series must each be told apart. Assigned in this order and never cycled; past five, fold into context gray or small multiples. Slot 1 is the highlight's own color, and every other slot sits at least 30 degrees of OKLCH hue from it. Validated with the dataviz palette checks in every set: adjacent pairs for all five, all pairs for the first three. The dark sets keep slots 2 to 5 inside the dark lightness band, which puts crimson last: at step 500 it sits too close to the rose to stay beside it.",
+      "standard": {
+        "1": {
+          "$value": "{color.purple.500}"
+        },
+        "2": {
+          "$value": "{color.red.600}"
+        },
+        "3": {
+          "$value": "{color.pink.400}"
+        },
+        "4": {
+          "$value": "{color.amber.600}"
+        },
+        "5": {
+          "$value": "{color.teal.500}"
+        }
+      },
+      "high": {
+        "1": {
+          "$value": "{color.purple.700}"
+        },
+        "2": {
+          "$value": "{color.red.600}"
+        },
+        "3": {
+          "$value": "{color.pink.400}"
+        },
+        "4": {
+          "$value": "{color.amber.600}"
+        },
+        "5": {
+          "$value": "{color.teal.500}"
+        }
+      },
+      "dark-standard": {
+        "1": {
+          "$value": "{color.purple.400}"
+        },
+        "2": {
+          "$value": "{color.pink.500}"
+        },
+        "3": {
+          "$value": "{color.amber.500}"
+        },
+        "4": {
+          "$value": "{color.teal.500}"
+        },
+        "5": {
+          "$value": "{color.red.500}"
+        }
+      },
+      "dark-high": {
+        "1": {
+          "$value": "{color.purple.300}"
+        },
+        "2": {
+          "$value": "{color.pink.500}"
+        },
+        "3": {
+          "$value": "{color.amber.500}"
+        },
+        "4": {
+          "$value": "{color.teal.500}"
+        },
+        "5": {
+          "$value": "{color.red.500}"
+        }
+      }
+    },
+    "sequential": {
+      "$type": "color",
+      "$description": "Magnitude: one hue, on the accent's ramp, seven steps from the lowest value (1) to the highest (7). On light paper the steps run light to dark; on graphite they run dark to light, so in every set a higher value contrasts more with the chart surface. Where a step shares its light hex with another standard or high token, its dark step is that token's dark counterpart (standard 5 and 6, high 7), so the dark map stays unambiguous (DECISIONS/012).",
+      "standard": {
+        "1": {
+          "$value": "{color.purple.100}"
+        },
+        "2": {
+          "$value": "{color.purple.200}"
+        },
+        "3": {
+          "$value": "{color.purple.300}"
+        },
+        "4": {
+          "$value": "{color.purple.400}"
+        },
+        "5": {
+          "$value": "{color.purple.500}"
+        },
+        "6": {
+          "$value": "{color.purple.600}"
+        },
+        "7": {
+          "$value": "{color.purple.700}"
+        }
+      },
+      "high": {
+        "1": {
+          "$value": "{color.purple.100}"
+        },
+        "2": {
+          "$value": "{color.purple.200}"
+        },
+        "3": {
+          "$value": "{color.purple.300}"
+        },
+        "4": {
+          "$value": "{color.purple.400}"
+        },
+        "5": {
+          "$value": "{color.purple.500}"
+        },
+        "6": {
+          "$value": "{color.purple.600}"
+        },
+        "7": {
+          "$value": "{color.purple.700}"
+        }
+      },
+      "dark-standard": {
+        "1": {
+          "$value": "{color.purple.800}"
+        },
+        "2": {
+          "$value": "{color.purple.700}"
+        },
+        "3": {
+          "$value": "{color.purple.600}"
+        },
+        "4": {
+          "$value": "{color.purple.500}"
+        },
+        "5": {
+          "$value": "{color.purple.400}"
+        },
+        "6": {
+          "$value": "{color.purple.300}"
+        },
+        "7": {
+          "$value": "{color.purple.200}"
+        }
+      },
+      "dark-high": {
+        "1": {
+          "$value": "{color.purple.900}"
+        },
+        "2": {
+          "$value": "{color.purple.800}"
+        },
+        "3": {
+          "$value": "{color.purple.700}"
+        },
+        "4": {
+          "$value": "{color.purple.600}"
+        },
+        "5": {
+          "$value": "{color.purple.500}"
+        },
+        "6": {
+          "$value": "{color.purple.400}"
+        },
+        "7": {
+          "$value": "{color.purple.300}"
+        }
+      }
+    },
+    "diverging": {
+      "$type": "color",
+      "$description": "Polarity: a warm (ochre) and a cool (purple) arm of equal lightness per step around a gray midpoint. Step 1 sits next to the midpoint.",
+      "warm": {
+        "3": {
+          "$value": "{color.amber.700}"
+        },
+        "2": {
+          "$value": "{color.amber.500}"
+        },
+        "1": {
+          "$value": "{color.amber.300}"
+        }
+      },
+      "neutral": {
+        "$value": "{color.stone.100}"
+      },
+      "cool": {
+        "1": {
+          "$value": "{color.purple.300}"
+        },
+        "2": {
+          "$value": "{color.purple.500}"
+        },
+        "3": {
+          "$value": "{color.purple.700}"
+        }
+      }
+    },
+    "annotation": {
+      "$description": "Restrained annotation in graphite, never a hue: event lines, callouts with a leader, shaded ranges, incomplete periods.",
+      "standard": {
+        "$type": "color",
+        "line": {
+          "$value": "{color.stone.700}",
+          "$description": "Event line"
+        },
+        "text": {
+          "$value": "{color.stone.700}"
+        },
+        "leader": {
+          "$value": "{color.stone.500}",
+          "$description": "Callout leader"
+        },
+        "range": {
+          "$value": "{color.stone.100}",
+          "$description": "Shaded range, behind the data"
+        }
+      },
+      "high": {
+        "$type": "color",
+        "line": {
+          "$value": "{color.stone.900}",
+          "$description": "Event line"
+        },
+        "text": {
+          "$value": "{color.stone.900}"
+        },
+        "leader": {
+          "$value": "{color.stone.700}",
+          "$description": "Callout leader"
+        },
+        "range": {
+          "$value": "{color.stone.200}",
+          "$description": "Shaded range, behind the data"
+        }
+      },
+      "dark-standard": {
+        "$type": "color",
+        "line": {
+          "$value": "{color.stone.300}"
+        },
+        "text": {
+          "$value": "{color.stone.300}"
+        },
+        "leader": {
+          "$value": "{color.stone.500}"
+        },
+        "range": {
+          "$value": "{color.stone.900}"
+        }
+      },
+      "dark-high": {
+        "$type": "color",
+        "line": {
+          "$value": "{color.stone.100}"
+        },
+        "text": {
+          "$value": "{color.stone.100}"
+        },
+        "leader": {
+          "$value": "{color.stone.300}"
+        },
+        "range": {
+          "$value": "{color.stone.850}"
+        }
+      },
+      "width": {
+        "$type": "dimension",
+        "$value": {
+          "value": 1,
+          "unit": "px"
+        },
+        "$description": "Event lines and callout leaders"
+      },
+      "incomplete": {
+        "$description": "An incomplete period: its segment is dashed in the series' own color and width and ends in a hollow point (mark.point, with a 2px ring, mark.ring). On the static canvases the point is an ECharts emptyCircle, which ECharts fills with its own white, #ffffff (color.white), and rings at 2px; the interactive view draws a circle filled with its chart surface (surface) and ringed in the series' color at mark.ring, 2px, in every set, dark ones included. The dash and gap are what ECharts draws for a dashed line, four and two line widths, on the highlight line (mark.line.highlight); static canvases scale them with the line, to 25px and 12.5px",
+        "style": {
+          "$type": "strokeStyle",
+          "$value": "dashed"
+        },
+        "dash": {
+          "$type": "dimension",
+          "$value": {
+            "value": 10,
+            "unit": "px"
+          }
+        },
+        "gap": {
+          "$type": "dimension",
+          "$value": {
+            "value": 5,
+            "unit": "px"
+          }
+        }
+      }
+    },
+    "mark": {
+      "$type": "dimension",
+      "$description": "Mark sizes at interactive scale. Static presets multiply them by static.scale, except ring, which ECharts holds at 2px on a hollow point.",
+      "line": {
+        "highlight": {
+          "$value": {
+            "value": 2.5,
+            "unit": "px"
+          }
+        },
+        "context": {
+          "$value": {
+            "value": 1.5,
+            "unit": "px"
+          }
+        }
+      },
+      "point": {
+        "$value": {
+          "value": 8,
+          "unit": "px"
+        },
+        "$description": "Point diameter; a hollow point has a 2px ring (ring) at every size"
+      },
+      "ring": {
+        "$value": {
+          "value": 2,
+          "unit": "px"
+        },
+        "$description": "Ring of a hollow point. It stays 2px on the static canvases too: ECharts draws a hollow symbol's ring at 2px whatever width the option asks for, so static.scale does not reach it. The same 2px is the paper gap to keep between fills that touch, which no gallery figure has yet."
+      },
+      "rule": {
+        "$value": {
+          "value": 1,
+          "unit": "px"
+        },
+        "$description": "Gridlines and the baseline"
+      }
+    },
+    "font": {
+      "$type": "fontFamily",
+      "$description": "The figure speaks in the reading voice; only the footer (source, n, note) is mono",
+      "text": {
+        "$value": "{font.family.sans}"
+      },
+      "footer": {
+        "$value": "{font.family.mono}"
+      }
+    },
+    "weight": {
+      "$type": "fontWeight",
+      "title": {
+        "$value": "{font.weight.semibold}"
+      },
+      "highlight": {
+        "$value": "{font.weight.semibold}",
+        "$description": "The highlight's direct label"
+      },
+      "text": {
+        "$value": "{font.weight.regular}"
+      }
+    },
+    "static": {
+      "$description": "The two static canvases, 1200×1200 and 1080×1350, seen in the LinkedIn feed on a phone at about 0.33× (1200) and 0.36× (1080).",
+      "text-floor": {
+        "$type": "dimension",
+        "$value": {
+          "value": 32,
+          "unit": "px"
+        },
+        "$description": "No text on a static canvas is smaller: 32px shows at about 10.4 CSS px on a 390px-wide phone (1200 canvas) and 11.6 (1080 canvas). Only the footer sits at the floor."
+      },
+      "scale": {
+        "$type": "number",
+        "$value": 2.5,
+        "$description": "Static canvases draw marks at this multiple of their interactive size (1200 / 480), except the ring of a hollow point (mark.ring), which ECharts keeps at 2px"
+      },
+      "text": {
+        "$type": "dimension",
+        "$description": "Text sizes on the static canvases, all at or above the floor",
+        "title": {
+          "$value": {
+            "value": 60,
+            "unit": "px"
+          },
+          "$description": "Title, semibold. The chart code wraps it to as many lines as it needs, balanced; write it to fit in two."
+        },
+        "subtitle": {
+          "$value": {
+            "value": 40,
+            "unit": "px"
+          }
+        },
+        "label": {
+          "$value": {
+            "value": 40,
+            "unit": "px"
+          },
+          "$description": "Direct labels and values on marks"
+        },
+        "axis": {
+          "$value": {
+            "value": 34,
+            "unit": "px"
+          },
+          "$description": "Axis labels and annotation text"
+        },
+        "footer": {
+          "$value": "{chart.static.text-floor}",
+          "$description": "The footer: source, note, n"
+        }
+      },
+      "margin": {
+        "$type": "dimension",
+        "$value": {
+          "value": 64,
+          "unit": "px"
+        },
+        "$description": "Space between the canvas edge and anything drawn on it"
+      },
+      "gap": {
+        "$type": "dimension",
+        "$value": {
+          "value": 40,
+          "unit": "px"
+        },
+        "$description": "Space between the title block, the plot and the footer"
+      },
+      "square": {
+        "$type": "dimension",
+        "width": {
+          "$value": {
+            "value": 1200,
+            "unit": "px"
+          }
+        },
+        "height": {
+          "$value": {
+            "value": 1200,
+            "unit": "px"
+          }
+        }
+      },
+      "portrait": {
+        "$type": "dimension",
+        "width": {
+          "$value": {
+            "value": 1080,
+            "unit": "px"
+          }
+        },
+        "height": {
+          "$value": {
+            "value": 1350,
+            "unit": "px"
+          }
+        }
+      }
+    },
+    "interactive": {
+      "$description": "The interactive view, which fills its container from 320 to 720px wide",
+      "text": {
+        "$type": "dimension",
+        "label": {
+          "$value": {
+            "value": 14,
+            "unit": "px"
+          },
+          "$description": "Direct labels"
+        },
+        "axis": {
+          "$value": {
+            "value": 12,
+            "unit": "px"
+          },
+          "$description": "Axis labels and annotation text; the smallest interactive text"
+        },
+        "title": {
+          "$value": {
+            "value": 18,
+            "unit": "px"
+          },
+          "$description": "The title, when it is drawn on the canvas rather than as the figure's HTML heading"
+        }
+      },
+      "margin": {
+        "$type": "dimension",
+        "$value": {
+          "value": 8,
+          "unit": "px"
+        },
+        "$description": "Space between the container's edge and anything drawn in it, and the unit of the interactive layout"
+      },
+      "narrow": {
+        "$type": "dimension",
+        "$value": {
+          "value": 480,
+          "unit": "px"
+        },
+        "$description": "Below this container width, direct labels drop to the axis size, bar names move above their bars, and a monthly time axis labels every second year"
+      },
+      "slider": {
+        "$type": "dimension",
+        "$value": {
+          "value": 24,
+          "unit": "px"
+        },
+        "$description": "Height of the zoom slider under a time series"
+      },
+      "height": {
+        "$type": "dimension",
+        "min": {
+          "$value": {
+            "value": 280,
+            "unit": "px"
+          }
+        },
+        "max": {
+          "$value": {
+            "value": 440,
+            "unit": "px"
+          }
+        },
+        "$description": "The plot is two thirds as tall as it is wide, within these bounds"
+      },
+      "max-width": {
+        "$type": "dimension",
+        "$value": {
+          "value": 720,
+          "unit": "px"
+        },
+        "$description": "The widest the interactive view grows"
+      }
+    }
+  }
+}

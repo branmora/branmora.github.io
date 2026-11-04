@@ -1,0 +1,72 @@
+{{- /*
+Builds the custom-property stylesheet from tokens/base.tokens.json, tokens/site.tokens.json and
+tokens/chart.tokens.json and returns it as a resource. Nothing generated is committed, so the CSS
+cannot drift from the tokens.
+
+- Every token of a type with a single CSS value becomes --<token path joined by ->: its value, or
+  var() of the token it aliases.
+- The current theme's roles become --theme-<role>, pointing at one theme's tokens; the blocks
+  below re-point them per theme. The stylesheets use only --theme-<role>.
+*/ -}}
+{{- $base := os.ReadFile "tokens/base.tokens.json" | transform.Unmarshal -}}
+{{- $site := os.ReadFile "tokens/site.tokens.json" | transform.Unmarshal -}}
+{{- $chart := os.ReadFile "tokens/chart.tokens.json" | transform.Unmarshal -}}
+{{- $default := "light" -}}
+
+{{- $tokens := slice -}}
+{{- range slice $base $site $chart -}}
+  {{- range partial "tokens/walk.html" (dict "node" . "path" slice "type" "") -}}
+    {{- $tokens = $tokens | append . -}}
+  {{- end -}}
+{{- end -}}
+
+{{- $lines := slice "/* Generated from tokens; do not edit. */" "/* Source: tokens/base.tokens.json, tokens/site.tokens.json and tokens/chart.tokens.json, by layouts/_partials/tokens/. */" "" ":root {" -}}
+{{- range $token := $tokens -}}
+  {{- with partial "tokens/value.html" $token -}}
+    {{- $lines = $lines | append (printf "  --%s: %s;" (delimit $token.path "-") .) -}}
+  {{- end -}}
+{{- end -}}
+{{- $lines = $lines | append "}" "" -}}
+
+{{- /*
+The current theme. With JavaScript, the script in <head> sets data-theme and data-contrast on
+<html> before the body is parsed, from the saved choice or the system. Without it, neither
+attribute exists and the media queries choose. Paper ([data-surface="paper"]) is the light chart
+sheet, high contrast when the page is: every static canvas sits on it, and so does an interactive
+chart on a light page. On a dark page the interactive chart follows the page (DECISIONS/012).
+*/ -}}
+{{- $roles := slice -}}
+{{- range $role, $_ := index $site "theme" $default -}}
+  {{- if not (hasPrefix $role "$") }}{{ $roles = $roles | append $role }}{{ end -}}
+{{- end -}}
+{{- $schemes := dict "light" "light" "light-contrast" "light" "dark" "dark" "dark-contrast" "dark" "paper" "light" "paper-contrast" "light" -}}
+{{- $blocks := slice
+  (dict "comment" "Light, standard: the default, and the system's choice without JavaScript" "media" "" "selector" ":root" "theme" "light")
+  (dict "media" "(prefers-color-scheme: dark)" "selector" ":root:not([data-theme])" "theme" "dark")
+  (dict "media" "(prefers-contrast: more)" "selector" ":root:not([data-contrast])" "theme" "light-contrast")
+  (dict "media" "(prefers-color-scheme: dark) and (prefers-contrast: more)" "selector" ":root:not([data-theme]):not([data-contrast])" "theme" "dark-contrast")
+  (dict "comment" "The theme in use, as the script in <head> set it" "media" "" "selector" ":root[data-theme=\"light\"][data-contrast=\"standard\"]" "theme" "light")
+  (dict "media" "" "selector" ":root[data-theme=\"dark\"][data-contrast=\"standard\"]" "theme" "dark")
+  (dict "media" "" "selector" ":root[data-theme=\"light\"][data-contrast=\"high\"]" "theme" "light-contrast")
+  (dict "media" "" "selector" ":root[data-theme=\"dark\"][data-contrast=\"high\"]" "theme" "dark-contrast")
+  (dict "comment" "The chart sheet" "media" "" "selector" "[data-surface=\"paper\"]" "theme" "paper")
+  (dict "media" "(prefers-contrast: more)" "selector" ":root:not([data-contrast]) [data-surface=\"paper\"]" "theme" "paper-contrast")
+  (dict "media" "" "selector" ":root[data-contrast=\"high\"] [data-surface=\"paper\"]" "theme" "paper-contrast")
+-}}
+{{- range $blocks -}}
+  {{- $indent := cond (eq .media "") "" "  " -}}
+  {{- with .comment }}{{ $lines = $lines | append (printf "/* %s */" .) }}{{ end -}}
+  {{- if .media }}{{ $lines = $lines | append (printf "@media %s {" .media) }}{{ end -}}
+  {{- $lines = $lines | append (printf "%s%s {" $indent .selector) -}}
+  {{- $lines = $lines | append (printf "%s  --theme-color-scheme: %s;" $indent (index $schemes .theme)) -}}
+  {{- $theme := .theme -}}
+  {{- range $roles -}}
+    {{- $lines = $lines | append (printf "%s  --theme-%s: var(--theme-%s-%s);" $indent . $theme .) -}}
+  {{- end -}}
+  {{- $lines = $lines | append (printf "%s}" $indent) -}}
+  {{- if .media }}{{ $lines = $lines | append "}" }}{{ end -}}
+  {{- $lines = $lines | append "" -}}
+{{- end -}}
+
+{{- $css := partial "site/stylesheet.html" (resources.FromString "css/tokens.css" (delimit $lines "\n")) -}}
+{{- return $css -}}

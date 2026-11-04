@@ -1,0 +1,199 @@
+{{- /*
+  The page's JSON-LD (spec 007): one script holding an @graph, built from dicts with jsonify, so
+  it always parses. Every node comes from the content model, About's front matter, or the string
+  files; nothing is claimed that they do not hold (no ratings).
+
+  - Every page: a WebPage node (WebSite on the home page, ProfilePage on About, CollectionPage on
+    the list and topic views).
+  - Every page below home: a BreadcrumbList from the language's home, through each rendered
+    section above the page, to the page.
+  - Posts and notes: a BlogPosting with its author, dates of publication and change, language, and license (CC BY 4.0), and
+    as its image the link preview made from the image that leads its card (site/social-image.html,
+    spec 020), when it has one.
+  - Posts that offer a CSV: a Dataset per figure, distributing the CSV as text/csv.
+  - Projects (spec 011): a SoftwareSourceCode when the project links a repository (with its
+    codeRepository), a CreativeWork otherwise, with its name, summary, page, author, language,
+    topics, years, image, other links, and translations.
+  - About: the author as a Person, with sameAs linking the profiles (and ORCID once params.orcid
+    is set). Other pages name the author by the same @id.
+*/ -}}
+{{- $page := . -}}
+{{- $lang := site.Language.Lang -}}
+{{- $home := site.Home -}}
+{{- $siteName := T "siteTitle" -}}
+{{- $graph := slice -}}
+
+{{- /* The author, from About in this language. */ -}}
+{{- $person := dict "@type" "Person" "name" $siteName -}}
+{{- with site.GetPage "/about" -}}
+  {{- $p := .Params -}}
+  {{- $same := slice -}}
+  {{- range $p.links -}}{{- $same = $same | append .url -}}{{- end -}}
+  {{- with site.Params.orcid -}}{{- $same = $same | append (printf "https://orcid.org/%s" .) -}}{{- end -}}
+  {{- $person = dict "@type" "Person" "@id" (printf "%s#person" .Permalink) "name" ($p.name | default $siteName) "url" .Permalink -}}
+  {{- with $p.description -}}{{- $person = merge $person (dict "description" .) -}}{{- end -}}
+  {{- with $p.current -}}
+    {{- with .role -}}{{- $person = merge $person (dict "jobTitle" .) -}}{{- end -}}
+    {{- with .org -}}{{- $person = merge $person (dict "worksFor" (dict "@type" "Organization" "name" .)) -}}{{- end -}}
+  {{- end -}}
+  {{- with $same -}}{{- $person = merge $person (dict "sameAs" .) -}}{{- end -}}
+{{- end -}}
+{{- $author := $person -}}
+{{- /* Other pages name the author by @id, with About in this language as its url (spec 020). */ -}}
+{{- with index $person "@id" -}}{{- $author = dict "@type" "Person" "@id" . "name" (index $person "name") "url" (index $person "url") -}}{{- end -}}
+
+{{- $websiteID := printf "%s#website" $home.Permalink -}}
+{{- $pageID := printf "%s#webpage" $page.Permalink -}}
+
+{{- /* The page itself. */ -}}
+{{- if $page.IsHome -}}
+  {{- $graph = $graph | append (dict
+    "@type" "WebSite"
+    "@id" $websiteID
+    "name" $siteName
+    "description" (T "siteDescription")
+    "url" $page.Permalink
+    "inLanguage" $lang
+    "author" $author
+  ) -}}
+{{- else -}}
+  {{- $type := "WebPage" -}}
+  {{- if eq $page.Layout "about" -}}{{- $type = "ProfilePage" -}}
+  {{- else if or $page.IsSection (eq $page.Layout "topic") -}}{{- $type = "CollectionPage" -}}
+  {{- end -}}
+  {{- $node := dict
+    "@type" $type
+    "@id" $pageID
+    "name" $page.Title
+    "url" $page.Permalink
+    "inLanguage" $lang
+    "isPartOf" (dict "@id" $websiteID)
+    "breadcrumb" (dict "@id" (printf "%s#breadcrumb" $page.Permalink))
+  -}}
+  {{- with $page.Description -}}{{- $node = merge $node (dict "description" .) -}}{{- end -}}
+  {{- /* On About, the page is the author's profile, and the author is a node of its own. */ -}}
+  {{- if eq $type "ProfilePage" -}}{{- $node = merge $node (dict "mainEntity" $author) -}}{{- end -}}
+  {{- $graph = $graph | append $node -}}
+  {{- if eq $type "ProfilePage" -}}{{- $graph = $graph | append $person -}}{{- end -}}
+
+  {{- /* The breadcrumb: home, each rendered section above the page, then the page. */ -}}
+  {{- $trail := slice $home -}}
+  {{- range $page.Ancestors.Reverse -}}
+    {{- if and (not .IsHome) .RelPermalink -}}{{- $trail = $trail | append . -}}{{- end -}}
+  {{- end -}}
+  {{- $trail = $trail | append $page -}}
+  {{- $items := slice -}}
+  {{- range $i, $p := $trail -}}
+    {{- $name := $p.Title -}}
+    {{- if $p.IsHome -}}{{- $name = $siteName -}}{{- end -}}
+    {{- $items = $items | append (dict "@type" "ListItem" "position" (add $i 1) "name" $name "item" $p.Permalink) -}}
+  {{- end -}}
+  {{- $graph = $graph | append (dict "@type" "BreadcrumbList" "@id" (printf "%s#breadcrumb" $page.Permalink) "itemListElement" $items) -}}
+{{- end -}}
+
+{{- /* Posts and notes. */ -}}
+{{- if in (slice "post" "note") $page.Type -}}
+  {{- $model := partial "content/model.html" $page -}}
+  {{- with $model.kind -}}
+    {{- $posting := dict
+      "@type" "BlogPosting"
+      "@id" (printf "%s#article" $page.Permalink)
+      "headline" $model.title
+      "url" $page.Permalink
+      "mainEntityOfPage" (dict "@id" $pageID)
+      "author" $author
+      "datePublished" $model.date
+      "dateModified" ((partial "site/modified.html" $page).Format "2006-01-02")
+      "inLanguage" $model.lang
+      "license" (T "licenseURL")
+      "isPartOf" (dict "@id" $websiteID)
+    -}}
+    {{- /* The same description as the page's meta and social tags (spec 020). */ -}}
+    {{- with partial "site/description.html" $page -}}{{- $posting = merge $posting (dict "description" .) -}}{{- end -}}
+    {{- with $model.topics -}}
+      {{- $names := slice -}}
+      {{- range . -}}{{- $names = $names | append .name -}}{{- end -}}
+      {{- $posting = merge $posting (dict "keywords" $names) -}}
+    {{- end -}}
+    {{- with partial "site/social-image.html" $page -}}
+      {{- if .lead -}}{{- $posting = merge $posting (dict "image" .url) -}}{{- end -}}
+    {{- end -}}
+    {{- $sources := slice -}}
+    {{- range $model.sources -}}{{- with .url -}}{{- $sources = $sources | append . -}}{{- end -}}{{- end -}}
+    {{- with $sources -}}{{- $posting = merge $posting (dict "citation" .) -}}{{- end -}}
+    {{- with $model.translations -}}
+      {{- $other := slice -}}
+      {{- range $l, $u := . -}}{{- $other = $other | append (dict "@type" "BlogPosting" "url" $u "inLanguage" $l) -}}{{- end -}}
+      {{- $posting = merge $posting (dict "workTranslation" $other) -}}
+    {{- end -}}
+    {{- $graph = $graph | append $posting -}}
+
+    {{- /* One Dataset per figure that offers its CSV. */ -}}
+    {{- if eq $model.kind "post" -}}
+      {{- $many := gt (len $model.figures) 1 -}}
+      {{- $upstream := slice -}}
+      {{- range $model.datasets -}}{{- $upstream = $upstream | append .url -}}{{- end -}}
+      {{- range $i, $f := $model.figures -}}
+        {{- with $f.csv -}}
+          {{- $name := $model.title -}}
+          {{- if $many -}}{{- $name = printf "%s (%d)" $name (add $i 1) -}}{{- end -}}
+          {{- $description := $f.alt -}}
+          {{- with $model.method -}}{{- $description = printf "%s %s" $description . -}}{{- end -}}
+          {{- $dataset := dict
+            "@type" "Dataset"
+            "@id" (printf "%s#dataset-%d" $page.Permalink (add $i 1))
+            "name" $name
+            "description" $description
+            "url" $page.Permalink
+            "inLanguage" $f.lang
+            "creator" $author
+            "isPartOf" (dict "@id" (printf "%s#article" $page.Permalink))
+            "distribution" (slice (dict "@type" "DataDownload" "contentUrl" . "encodingFormat" "text/csv"))
+          -}}
+          {{- with $upstream -}}{{- $dataset = merge $dataset (dict "isBasedOn" .) -}}{{- end -}}
+          {{- $graph = $graph | append $dataset -}}
+        {{- end -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- /* Projects. */ -}}
+{{- if partial "content/is-project.html" $page -}}
+  {{- $model := partial "content/model.html" $page -}}
+  {{- with $model.kind -}}
+    {{- $type := "CreativeWork" -}}
+    {{- $repo := "" -}}
+    {{- $same := slice -}}
+    {{- range $model.links -}}
+      {{- if and (eq .label "repository") (not $repo) -}}{{- $type = "SoftwareSourceCode" -}}{{- $repo = .url -}}
+      {{- else -}}{{- $same = $same | append .url -}}{{- end -}}
+    {{- end -}}
+    {{- $work := dict
+      "@type" $type
+      "@id" (printf "%s#project" $page.Permalink)
+      "name" $model.title
+      "description" $model.summary
+      "url" $page.Permalink
+      "mainEntityOfPage" (dict "@id" $pageID)
+      "author" $author
+      "inLanguage" $model.lang
+      "dateCreated" (printf "%d" $model.years.start)
+      "isPartOf" (dict "@id" $websiteID)
+    -}}
+    {{- with $repo -}}{{- $work = merge $work (dict "codeRepository" .) -}}{{- end -}}
+    {{- with $same -}}{{- $work = merge $work (dict "sameAs" .) -}}{{- end -}}
+    {{- with $model.image -}}{{- $work = merge $work (dict "image" .url) -}}{{- end -}}
+    {{- with $model.topics -}}
+      {{- $names := slice -}}
+      {{- range . -}}{{- $names = $names | append .name -}}{{- end -}}
+      {{- $work = merge $work (dict "keywords" $names) -}}
+    {{- end -}}
+    {{- with $model.translations -}}
+      {{- $other := slice -}}
+      {{- range $l, $u := . -}}{{- $other = $other | append (dict "@type" $type "url" $u "inLanguage" $l) -}}{{- end -}}
+      {{- $work = merge $work (dict "workTranslation" $other) -}}
+    {{- end -}}
+    {{- $graph = $graph | append $work -}}
+  {{- end -}}
+{{- end -}}
+<script type="application/ld+json">{{ dict "@context" "https://schema.org" "@graph" $graph | jsonify | safeJS }}</script>

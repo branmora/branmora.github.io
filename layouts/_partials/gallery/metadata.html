@@ -1,0 +1,6 @@
+{{- /* A post's header: the metadata in the gutter, beside the title and the lede. */ -}}
+{{ partial "components/metadata.html" (dict "items" .c.items "class" "gutter") }}
+<div class="column">
+  <p class="title-sample">{{ .c.title }}</p>
+  <p>{{ .c.lede }}</p>
+</div>

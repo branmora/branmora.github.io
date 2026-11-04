@@ -1,0 +1,7 @@
+{{- /* The site card of one language (DESIGN.md, Site card): assets/cards/site-card.<lang>.png,
+drawn by scripts/make_cards.py from the tokens and the string files, and fingerprinted, so a
+preview that caches by address picks up a new card. Context: the language code. Returns the
+resource. */ -}}
+{{- $card := resources.Get (printf "cards/site-card.%s.png" .) }}
+{{- if not $card }}{{ errorf "site/card.html: assets/cards/site-card.%s.png is missing; run scripts/make_cards.py" . }}{{ end }}
+{{- return (fingerprint $card) }}

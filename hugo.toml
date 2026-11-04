@@ -1,0 +1,117 @@
+# The one place the site's address is set: the site launches at branmora.github.io
+# (DECISIONS/017). Every absolute URL the build writes derives from it, and the domain's root is the
+# site's root, so the root 404 page's root-relative links hold. `--baseURL` overrides it for a
+# single build.
+baseURL = "https://branmora.github.io/"
+
+defaultContentLanguage = "en"
+defaultContentLanguageInSubdir = true
+disableKinds = ["taxonomy", "term"]
+
+# Discovery files (spec 007). robots.txt allows every crawler and names the sitemap
+# (layouts/robots.txt); the sitemap (layouts/sitemap.xml) lists every page with its language
+# alternates and its modified date.
+enableRobotsTXT = true
+
+# Dates of change (spec 020): a page's modified date is its `lastmod` when its front matter sets
+# one, else the date of the last commit that touched its content file, else its date.
+# scripts/hugo.py turns on Git info only where there is history, as Hugo fails without it;
+# site/modified.html keeps the date from falling before the publication date.
+[frontmatter]
+  lastmod = ["lastmod", ":git", "date"]
+
+# Each language's home writes its feed of posts and notes (layouts/home.rss.xml, /<lang>/index.xml).
+# No other kind has a feed. llms.txt, one file at the site's root that lists every language's pages
+# (layouts/home.llms.txt), is written by the English home alone: content/_index.en.md adds it.
+[outputs]
+  home = ["html", "rss"]
+  section = ["html"]
+  page = ["html"]
+
+# Interface text, the site title and language names included, lives in i18n/<lang>.toml.
+
+# Each language's locale for link previews (spec 020): `og:locale` on its pages, and
+# `og:locale:alternate` on its translations' (site/social.html). Facebook's and LinkedIn's own
+# locale codes: en_US for English, es_LA for Latin American Spanish.
+[languages.en]
+  weight = 1
+  [languages.en.params]
+    ogLocale = "en_US"
+
+[languages.es]
+  weight = 2
+  [languages.es.params]
+    ogLocale = "es_LA"
+
+# Projects (spec 011) live under projects/ in both languages, as page bundles named by their slug.
+# Their pages are /en/projects/<slug>/ and /es/proyectos/<slug>/; the samples' are the same under
+# /<lang>/samples/. CONTENT.md, Projects, describes the model.
+# Blog posts (`type: note`) live under notes/ but read as /<lang>/blog/<slug>/ (spec 018); the
+# samples' are /<lang>/samples/blog/<slug>/. The notes folder renders no page of its own, so nothing
+# else claims /<lang>/blog/, and the Spanish writing page takes /es/blog/ (content/writing.es.md).
+[languages.en.permalinks.page]
+  projects = "/projects/:slugorcontentbasename/"
+  notes = "/blog/:slugorcontentbasename/"
+  "samples/notes" = "/samples/blog/:slugorcontentbasename/"
+  "samples/projects" = "/samples/projects/:slugorcontentbasename/"
+
+[languages.en.permalinks.section]
+  projects = "/projects/"
+  "samples/projects" = "/samples/projects/"
+
+[languages.es.permalinks.page]
+  projects = "/proyectos/:slugorcontentbasename/"
+  notes = "/blog/:slugorcontentbasename/"
+  "samples/notes" = "/samples/blog/:slugorcontentbasename/"
+  "samples/projects" = "/samples/proyectos/:slugorcontentbasename/"
+
+[languages.es.permalinks.section]
+  projects = "/proyectos/"
+  "samples/projects" = "/samples/proyectos/"
+
+# A machine-readable view of each post and note: `<page URL>model.json`. Only the development
+# and test environments turn it on for pages (config/<env>/hugo.toml); CONTENT.md describes it.
+[outputFormats.model]
+  mediaType = "application/json"
+  baseName = "model"
+  isPlainText = true
+  notAlternative = true
+
+# The root 404 page (layouts/home.notfound.html), /404.html, which GitHub Pages serves for any
+# missing address. Like llms.txt, the English home alone writes it (content/_index.en.md).
+[outputFormats.notfound]
+  mediaType = "text/html"
+  baseName = "404"
+  isHTML = true
+  isPlainText = false
+  notAlternative = true
+  permalinkable = false
+  root = true
+
+[outputFormats.llms]
+  mediaType = "text/plain"
+  baseName = "llms"
+  isPlainText = true
+  notAlternative = true
+  root = true
+
+# The five topic areas, as slugs (CONTENT.md, Topics). The build rejects any other slug in a
+# piece's `topics`; the names come from i18n/<lang>.toml, under `topic_<slug>`.
+[params]
+  topics = [
+    "minds-and-machines",
+    "economics-of-ai",
+    "living-with-ai",
+    "open-science",
+    "working-with-ai",
+  ]
+
+# Footnotes link back with an arrow from the font subset (data/fonts.toml); Goldmark's default,
+# U+21A9 with a variation selector, is not in Plex and some systems draw it as an emoji.
+[markup.goldmark.extensions.footnote]
+  backlinkHTML = "↑"
+
+# An image alone in its paragraph renders as a figure with its caption (layouts/_markup/render-image.html,
+# CONTENT.md, Images in the text), so Goldmark leaves it unwrapped.
+[markup.goldmark.parser]
+  wrapStandAloneImageWithinParagraph = false

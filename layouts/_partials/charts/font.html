@@ -1,0 +1,8 @@
+{{- /* One fontFamily token as a CSS family list, aliases followed. Context: dict "table" "path". */ -}}
+{{- $v := partial "charts/resolve.html" . -}}
+{{- $generic := slice "serif" "sans-serif" "monospace" "system-ui" -}}
+{{- $names := slice -}}
+{{- range (cond (reflect.IsSlice $v) $v (slice $v)) -}}
+  {{- if or (in $generic .) (not (strings.Contains . " ")) }}{{ $names = $names | append . }}{{ else }}{{ $names = $names | append (printf "%q" .) }}{{ end -}}
+{{- end -}}
+{{- return delimit $names ", " -}}

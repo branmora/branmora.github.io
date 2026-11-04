@@ -1,0 +1,91 @@
+{{- /* The topics that something is filed under, per language (spec 010), for
+content/_content.gotmpl, which runs before the site has pages and so reads the content files
+itself. It reads every Markdown file in the folders mounted as content in this environment: the
+`[[module.mounts]]` of config/<environment>/hugo.toml whose target is `content` or below it, or
+`content/` alone when that file mounts none (production). A file's language is the part before
+`.md` in `<name>.<lang>.md`, or the default content language; drafts count for nothing. Context:
+none. Returns a dict of language to the slugs, from `params.topics`, filed in it. */ -}}
+{{- $sources := slice -}}
+{{- $config := printf "config/%s/hugo.toml" hugo.Environment -}}
+{{- if fileExists $config -}}
+  {{- $settings := os.ReadFile $config | transform.Unmarshal (dict "format" "toml") -}}
+  {{- with $settings.module -}}
+    {{- range .mounts -}}
+      {{- if or (eq .target "content") (hasPrefix .target "content/") -}}
+        {{- $sources = $sources | append .source -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- if not $sources -}}{{- $sources = slice "content" -}}{{- end -}}
+
+{{- $langs := slice -}}
+{{- range hugo.Sites -}}{{- $langs = $langs | append .Language.Lang -}}{{- end -}}
+{{- $default := (index hugo.Sites 0).Language.Lang -}}
+
+{{- /* Walk the folders breadth first: Go templates have no recursion here, so a queue grows. */ -}}
+{{- $files := slice -}}
+{{- $queue := $sources -}}
+{{- range seq 32 -}}
+  {{- if not $queue -}}{{- break -}}{{- end -}}
+  {{- $next := slice -}}
+  {{- range $queue -}}
+    {{- $dir := . -}}
+    {{- range os.ReadDir $dir -}}
+      {{- $path := path.Join $dir .Name -}}
+      {{- if .IsDir -}}
+        {{- $next = $next | append $path -}}
+      {{- else if strings.HasSuffix .Name ".md" -}}
+        {{- $files = $files | append $path -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+  {{- $queue = $next -}}
+{{- end -}}
+
+{{- $filed := newScratch -}}
+{{- range $langs -}}{{- $filed.Set . slice -}}{{- end -}}
+{{- range $files -}}
+  {{- $parts := split (path.Base .) "." -}}
+  {{- $lang := $default -}}
+  {{- if ge (len $parts) 3 -}}
+    {{- $code := index $parts (sub (len $parts) 2) -}}
+    {{- if in $langs $code -}}{{- $lang = $code -}}{{- end -}}
+  {{- end -}}
+  {{- $file := . -}}
+  {{- $text := os.ReadFile $file -}}
+  {{- $raw := "" -}}
+  {{- $format := "yaml" -}}
+  {{- with findRESubmatch `(?s)\A---\r?\n(.*?)\r?\n---\r?\n` $text 1 -}}
+    {{- $raw = index (index . 0) 1 -}}
+  {{- else -}}
+    {{- with findRESubmatch `(?s)\A\+\+\+\r?\n(.*?)\r?\n\+\+\+\r?\n` $text 1 -}}
+      {{- $raw = index (index . 0) 1 -}}
+      {{- $format = "toml" -}}
+    {{- end -}}
+  {{- end -}}
+  {{- /* Front matter that does not parse (a key set twice, say) fails the build with the form of
+  every content error (CONTENT.md, Validation): the content file's path, then what is wrong, which
+  names the field when the parser does. */ -}}
+  {{- $front := dict -}}
+  {{- if $raw -}}
+    {{- with try (transform.Unmarshal (dict "format" $format) $raw) -}}
+      {{- with .Err -}}
+        {{- errorf "%s: front matter is not valid %s: %s" $file (upper $format) (replaceRE `\s+` " " (string .)) -}}
+      {{- else -}}
+        {{- $front = .Value -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+  {{- if and $front (not $front.draft) -}}
+    {{- $topics := $front.topics -}}
+    {{- if reflect.IsSlice $topics -}}
+      {{- $have := $filed.Get $lang -}}
+      {{- range $topics -}}
+        {{- if and (in site.Params.topics .) (not (in $have .)) -}}{{- $have = $have | append . -}}{{- end -}}
+      {{- end -}}
+      {{- $filed.Set $lang $have -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- return $filed.Values -}}

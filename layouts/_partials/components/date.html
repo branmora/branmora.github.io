@@ -1,0 +1,5 @@
+{{- /* A date as ISO 8601, YYYY-MM-DD, in both languages (DECISIONS/005).
+Context: a date string or a time.Time. */ -}}
+{{- $d := (time.AsTime .).Format "2006-01-02" -}}
+<time datetime="{{ $d }}">{{ $d }}</time>
+{{- /**/ -}}

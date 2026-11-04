@@ -1,0 +1,58 @@
+# The deploy on every push to main: the production build, published to GitHub Pages at
+# https://branmora.github.io/. Only the author merges into main, so only the author deploys.
+# This file comes from releases of the site's theme; do not edit it here.
+name: deploy
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+# One deploy at a time; a newer push waits for the one in flight rather than cancelling it.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      # Full history, so each page's modified date is the last commit of its own content file.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          version: "0.12.24"
+      - name: Install the Hugo version pinned in .hugo-version
+        run: |
+          v="$(tr -d '[:space:]' < .hugo-version)"
+          base="https://github.com/gohugoio/hugo/releases/download/v${v}"
+          tarball="hugo_extended_${v}_linux-amd64.tar.gz"
+          cd "$RUNNER_TEMP"
+          curl -fsSLO "${base}/${tarball}"
+          curl -fsSL "${base}/hugo_${v}_checksums.txt" | grep " ${tarball}\$" | sha256sum -c -
+          mkdir -p hugo-bin && tar -xzf "${tarball}" -C hugo-bin hugo
+          echo "$RUNNER_TEMP/hugo-bin" >> "$GITHUB_PATH"
+      - run: hugo version
+      - run: uv sync --locked
+      - name: Build the production site
+        run: uv run scripts/hugo.py
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: public
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1

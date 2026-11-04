@@ -1,0 +1,38 @@
+{{- /*
+Builds the @font-face stylesheet for the self-hosted IBM Plex faces and returns it as a resource.
+
+- The family names are the first names of the font tokens (font.family.sans and font.family.mono in
+  tokens/base.tokens.json), and the weights are the weight tokens, so the faces always match the
+  families and weights the stylesheets ask for.
+- The files sit in assets/fonts/ibm-plex/ with their license; scripts/subset_fonts.py made them
+  from IBM's release. Each is published fingerprinted, so it can be cached for good.
+- unicode-range is the subset the files cover (data/fonts.toml), so any other character falls back to the next
+  family in the token's stack instead of showing a missing glyph.
+- font-display: swap shows text at once in the fallback face; the reading face is preloaded
+  (layouts/baseof.html), so the swap is rarely seen.
+*/ -}}
+{{- $base := os.ReadFile "tokens/base.tokens.json" | transform.Unmarshal -}}
+{{- $family := index $base "font" "family" -}}
+{{- $weight := index $base "font" "weight" -}}
+{{- $range := delimit site.Data.fonts.unicodeRange ", " -}}
+{{- $faces := slice
+  (dict "family" "sans" "file" "IBMPlexSans-Regular" "weight" "regular" "style" "normal")
+  (dict "family" "sans" "file" "IBMPlexSans-Italic" "weight" "regular" "style" "italic")
+  (dict "family" "sans" "file" "IBMPlexSans-SemiBold" "weight" "semibold" "style" "normal")
+  (dict "family" "mono" "file" "IBMPlexMono-Regular" "weight" "regular" "style" "normal")
+  (dict "family" "mono" "file" "IBMPlexMono-SemiBold" "weight" "semibold" "style" "normal")
+-}}
+{{- $lines := slice "/* IBM Plex, self-hosted. SIL Open Font License 1.1: assets/fonts/ibm-plex/LICENSE.txt. */" -}}
+{{- range $faces -}}
+  {{- $file := resources.Get (printf "fonts/ibm-plex/%s.woff2" .file) | fingerprint -}}
+  {{- $lines = $lines | append "" "@font-face {"
+    (printf "  font-family: %q;" (index (index $family .family "$value") 0))
+    (printf "  font-style: %s;" .style)
+    (printf "  font-weight: %v;" (index $weight .weight "$value"))
+    "  font-display: swap;"
+    (printf "  src: url(%q) format(\"woff2\");" $file.RelPermalink)
+    (printf "  unicode-range: %s;" $range)
+    "}" -}}
+{{- end -}}
+{{- $css := partial "site/stylesheet.html" (resources.FromString "css/fonts.css" (delimit $lines "\n")) -}}
+{{- return $css -}}

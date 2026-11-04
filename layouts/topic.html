@@ -1,0 +1,32 @@
+{{- /* A topic view (spec 006): the topic's posts and notes in this language, newest first, in
+the same list as home; then its projects (spec 011), newest first by start year, as ls -l rows
+with their years in the date column. j and k run through both lists. The page comes from
+content/_content.gotmpl. */ -}}
+{{ define "main" }}
+<main>
+  <h1>{{ .Title }}</h1>
+  {{ partial "topics/filters.html" .Params.topic }}
+  {{- $rows := partial "content/pieces.html" .Params.topic }}
+  {{- $projects := slice }}
+  {{- range partial "content/projects.html" .Params.topic }}
+    {{- $langs := slice .model.lang }}
+    {{- range $l, $_ := .model.translations }}{{ $langs = $langs | append $l }}{{ end }}
+    {{- $projects = $projects | append (dict
+      "years" (partial "project/years.html" .model.years)
+      "kind" "project"
+      "langs" $langs
+      "topics" .page.Params.topics
+      "title" .model.title
+      "href" .page.RelPermalink
+    ) }}
+  {{- end }}
+  {{- if or $rows (not $projects) }}
+  {{ partial "components/ls.html" $rows }}
+  {{- end }}
+  {{- with $projects }}
+  <h2 class="ls-heading">{{ T "topicProjects" }}</h2>
+  {{ partial "components/ls.html" . }}
+  {{- end }}
+  {{ partial "site/list-keys.html" ($rows | append $projects) }}
+</main>
+{{ end }}

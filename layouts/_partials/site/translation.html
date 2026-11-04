@@ -1,0 +1,6 @@
+{{- /* The page the language switcher opens: this page's translation, or the other language's home
+when the page has none (spec 006). The header's switcher and the palette's language command share
+it. Context: the page. Returns a page, or false. */ -}}
+{{- $target := false }}
+{{- with .Translations }}{{ $target = index . 0 }}{{ else }}{{ with site.Home.Translations }}{{ $target = index . 0 }}{{ end }}{{ end }}
+{{- return $target }}

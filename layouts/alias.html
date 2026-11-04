@@ -1,0 +1,16 @@
+{{- /* A redirect page: Hugo writes one wherever an address leads to another, the site's root among
+them, which sends readers to the default language's home (/en/). It carries the site's name as its
+title (spec 020), points its canonical at the target, and redirects with a meta refresh, never a
+script. Context: .Permalink (the target) and .Page. */ -}}
+<!doctype html>
+<html lang="{{ with .Page }}{{ .Language.Lang }}{{ else }}{{ site.Language.Lang }}{{ end }}">
+<head>
+  <meta charset="utf-8">
+  <title>{{ T "siteTitle" }}</title>
+  <link rel="canonical" href="{{ .Permalink }}">
+  <meta http-equiv="refresh" content="0; url={{ .Permalink }}">
+</head>
+<body>
+  <p><a href="{{ .Permalink }}">{{ .Permalink }}</a></p>
+</body>
+</html>

@@ -1,0 +1,14 @@
+{{- /* A piece's topics as a key: value line of links. Context: dict "topics" (slugs) and,
+optionally, "href" (where every topic links). Without "href" each topic links its topic view in the
+current language (spec 006). */ -}}
+{{- $href := .href -}}
+<div class="tags">
+  <span class="key">{{ T "topicsLabel" }}</span>
+  <ul>
+    {{- range .topics }}
+    {{- $to := $href }}
+    {{- if not $to }}{{ with partialCached "topics/page.html" . . site.Language.Lang }}{{ $to = .RelPermalink }}{{ end }}{{ end }}
+    <li><a href="{{ $to }}">{{ T (printf "topic_%s" .) }}</a></li>
+    {{- end }}
+  </ul>
+</div>

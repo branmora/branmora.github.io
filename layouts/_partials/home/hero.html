@@ -1,0 +1,42 @@
+{{- /* Home's hero (spec 010, #151; DESIGN.md, Hero band): the site's name, one sentence whose
+last words are a topic, a line from the author's bio (spec 016, #173), and the profile links, on the band where
+the accent glows into the surface. The sentence's topic is one link per topic view of this
+language, in params.topics order, so only topics with something filed show (spec 010, Topics).
+The first shows; the rest carry `hidden`, which is how the hero reads without JavaScript or with
+reduced motion. assets/js/hero.js rotates them otherwise. The bio line is heroBio in the string
+files; it names no employer or job title, which About keeps. The profiles come from About's front
+matter (`links`). Context: the home page, or the design gallery's page. */ -}}
+{{- $views := slice }}
+{{- range site.Params.topics }}
+  {{- with partialCached "topics/page.html" . . site.Language.Lang }}{{ $views = $views | append . }}{{ end }}
+{{- end }}
+{{- $about := site.GetPage "/about" }}
+<section class="hero" data-hero aria-labelledby="hero-name">
+  {{- /* The design gallery shows the hero as a specimen under its own h1, so there the name is a paragraph. */}}
+  {{- if eq .Layout "gallery" }}
+  <p class="hero-name" id="hero-name">{{ T "siteTitle" }}</p>
+  {{- else }}
+  <h1 class="hero-name" id="hero-name">{{ T "siteTitle" }}</h1>
+  {{- end }}
+  <p class="hero-line">
+    {{- if $views }}{{ T "heroLead" }} <span class="hero-rotor" data-rotating>
+      {{- range $i, $view := $views }}
+      {{- $words := T (printf "heroTopic_%s" .Params.topic) }}
+      {{- if not $words }}{{ errorf "i18n/%s.toml: heroTopic_%s is missing" site.Language.Lang .Params.topic }}{{ end }}
+      <a href="{{ .RelPermalink }}" data-word="{{ .Params.topic }}"{{ if $i }} hidden{{ end }}>{{ $words }}</a>
+      {{- end }}
+    </span>
+    {{- else }}{{ T "heroLeadAlone" }}{{ end -}}
+  </p>
+  <p class="hero-bio">{{ T "heroBio" }}</p>
+  {{- with $about }}
+  {{- with .Params.links }}
+  <ul class="hero-profiles" aria-label="{{ T "heroProfiles" }}">
+    {{- range . }}
+    <li><a href="{{ .url }}" rel="me">{{ .label }}</a></li>
+    {{- end }}
+  </ul>
+  {{- end }}
+  {{- end }}
+  {{ partial "home/live-visual.html" . }}
+</section>

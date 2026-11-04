@@ -1,0 +1,16 @@
+{{- /*
+  An image a piece's text shows with Markdown image syntax (CONTENT.md, Images in the text), as the
+  page serves it: resized to at most 1200px wide as WebP, as a project's image is, so a note with
+  screenshots stays within the weight budget.
+
+  Context: dict "page" and "name" (the file name the text writes). Returns the resource, or nil
+  when the bundle has no such image; content/validate.html reports that.
+*/ -}}
+{{- $img := false -}}
+{{- with .page.Resources.Get .name -}}
+  {{- $img = . -}}
+  {{- if in (slice "image/png" "image/jpeg" "image/webp") .MediaType.Type -}}
+    {{- $img = .Process "fit 1200x1200 webp q82" -}}
+  {{- end -}}
+{{- end -}}
+{{- return $img -}}

@@ -1,0 +1,17 @@
+{{- /* A page's modified date (spec 020, Dates of change). Context: the page. Returns a time.
+
+Its Lastmod, which hugo.toml's [frontmatter] takes from `lastmod` in front matter, else from the
+last commit that touched its content file (when scripts/hugo.py turns Git info on), else from its
+date. A page without any of these, such as a topic view or a list made from no file, takes the
+newest modified date of the pages it lists, else the site's. Never before the page's date. */ -}}
+{{- $page := . }}
+{{- $m := $page.Lastmod }}
+{{- if $m.IsZero }}{{ $m = $page.Date }}{{ end }}
+{{- if and $m.IsZero (not $page.IsPage) }}
+  {{- range $page.RegularPagesRecursive }}
+    {{- if .Lastmod.After $m }}{{ $m = .Lastmod }}{{ end }}
+  {{- end }}
+{{- end }}
+{{- if $m.IsZero }}{{ $m = site.Lastmod }}{{ end }}
+{{- if and (not $page.Date.IsZero) ($m.Before $page.Date) }}{{ $m = $page.Date }}{{ end }}
+{{- return $m }}

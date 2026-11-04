@@ -1,0 +1,87 @@
+{{- /* Home's featured items (spec 010, #153; CONTENT.md, Featured): up to three cards, from the
+posts, notes, and projects of this language whose front matter sets `featured: true`, newest first
+(a piece by its date, a project by 1 January of its start year). Each card leads with an image: a
+post's image when it leads with one (spec 019), else a post's or note's first chart (a post without one takes its translation's, as its page does), else
+the first image of its text, else a project's image. A featured item with none of these fails the
+build, so no card is ever without an image. The card is the projects list's card (project/card.html):
+the date or years first, the title as its one link, then the summary or topics. Context: none. */ -}}
+{{- $cards := slice }}
+{{- range where site.RegularPages "Params.featured" true }}
+  {{- $page := . }}
+  {{- $m := partial "content/model.html" $page }}
+  {{- $img := false }}
+  {{- $alt := "" }}
+  {{- $chart := false }}
+  {{- $when := "" }}
+  {{- $order := 0 }}
+  {{- if partial "content/is-project.html" $page }}
+    {{- with $m.image }}
+      {{- $r := $page.Resources.Get $page.Params.image.src }}
+      {{- $img = $r }}
+      {{- if in (slice "image/png" "image/jpeg" "image/webp") $r.MediaType.Type }}{{ $img = $r.Process "fit 800x800 webp q82" }}{{ end }}
+      {{- $alt = .alt }}
+    {{- end }}
+    {{- $when = partial "project/years.html" $m.years }}
+    {{- $order = (time.AsTime (printf "%d-01-01T00:00:00Z" $m.years.start)).Unix }}
+  {{- else }}
+    {{- $from := $page }}
+    {{- if and (not $page.Params.figures) (not $m.image) }}
+      {{- range $page.Translations }}{{ if and (eq $from $page) .Params.figures }}{{ $from = . }}{{ end }}{{ end }}
+    {{- end }}
+    {{- with $m.image }}
+      {{- /* A post led by an image (spec 019): the image fills the box, as a cover does. */}}
+      {{- with $page.Resources.Get $page.Params.image.src }}
+        {{- $img = . }}
+        {{- if in (slice "image/png" "image/jpeg" "image/webp") .MediaType.Type }}{{ $img = .Process "fit 800x800 webp q82" }}{{ end }}
+      {{- end }}
+      {{- $alt = .alt }}
+    {{- else with $from.Params.figures }}
+      {{- $first := index . 0 }}
+      {{- with $from.Resources.Get $first.png }}{{ $img = .Process "fit 800x800 webp q82" }}{{ end }}
+      {{- $alt = $first.alt }}
+      {{- $chart = true }}
+    {{- else }}
+      {{- with index $m.images 0 }}
+        {{- $alt = .alt }}
+        {{- $text := replaceRE `(?s)<!--.*?-->` "" $page.RawContent }}
+        {{- with findRESubmatch `!\[(?:[^\]\\]|\\.)*\]\(\s*<?([^\s<>()]+)>?` $text 1 }}
+          {{- with $page.Resources.Get (index (index . 0) 1) }}
+            {{- $img = . }}
+            {{- if in (slice "image/png" "image/jpeg" "image/webp") .MediaType.Type }}{{ $img = .Process "fit 800x800 webp q82" }}{{ end }}
+          {{- end }}
+        {{- end }}
+      {{- end }}
+    {{- end }}
+    {{- $when = $m.date }}
+    {{- $order = $page.Date.Unix }}
+  {{- end }}
+  {{- if not $img }}
+    {{- errorf "%s: featured: true, but it has no chart, no image in its text, and no project image to lead its card" $m.source }}
+  {{- end }}
+  {{- $cards = $cards | append (dict "page" $page "model" $m "img" $img "alt" $alt "chart" $chart "when" $when "order" $order) }}
+{{- end }}
+{{- with first 3 (sort $cards "order" "desc") }}
+<section class="home-section" aria-labelledby="home-featured">
+  <h2 id="home-featured">{{ T "homeFeatured" }}</h2>
+  <ul class="project-cards featured-cards" data-featured>
+    {{- range . }}
+    <li class="project-card" data-card>
+      <article>
+        <div class="card-image{{ if .chart }} card-chart{{ end }}"{{ if .chart }} data-surface="paper" data-reveal{{ end }}>
+          <img src="{{ .img.RelPermalink }}" width="{{ .img.Width }}" height="{{ .img.Height }}" alt="{{ .alt }}" loading="lazy" decoding="async">
+        </div>
+        <p class="project-card-years">{{ .when }}</p>
+        <h3 class="project-card-title"><a class="quiet-link" href="{{ .page.RelPermalink }}">{{ .model.title }}</a></h3>
+        {{- with .model.summary }}
+        <p class="project-card-summary">{{ . }}</p>
+        {{- else }}
+        {{- with .model.topics }}
+        <p class="project-card-summary card-topics">{{ range $i, $t := . }}{{ if $i }}, {{ end }}{{ $t.name }}{{ end }}</p>
+        {{- end }}
+        {{- end }}
+      </article>
+    </li>
+    {{- end }}
+  </ul>
+</section>
+{{- end }}

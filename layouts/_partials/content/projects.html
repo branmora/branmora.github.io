@@ -1,0 +1,18 @@
+{{- /* The projects of the current language (spec 011), newest first by start year, then by title.
+Context: a topic slug to keep only that topic's projects (the topic views, #134), or anything else
+for all of them. Returns a list of dicts: "page" and "model" (content/model.html). */ -}}
+{{- $topic := "" -}}
+{{- if eq (printf "%T" .) "string" -}}{{- $topic = . -}}{{- end -}}
+{{- $rows := slice -}}
+{{- range site.RegularPages -}}
+  {{- $page := . -}}
+  {{- if and (partial "content/is-project.html" $page) (or (not $topic) (in $page.Params.topics $topic)) -}}
+    {{- $m := partial "content/model.html" $page -}}
+    {{- with $m.years -}}
+      {{- $rows = $rows | append (dict "page" $page "model" $m "start" .start "title" $m.title) -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- $sorted := slice -}}
+{{- range sort (sort $rows "title") "start" "desc" -}}{{- $sorted = $sorted | append . -}}{{- end -}}
+{{- return $sorted -}}

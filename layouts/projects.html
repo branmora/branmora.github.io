@@ -1,0 +1,19 @@
+{{- /* The projects list (spec 011): every project of the page's language as a card, newest first by
+start year (content/projects.html). Cards are allowed for projects (DECISIONS/015); the writing
+list stays ls -l rows. With no projects it says so. */ -}}
+{{ define "main" }}
+{{- $rows := partial "content/projects.html" "" }}
+<main class="projects">
+  <h1>{{ .Title }}</h1>
+  <p class="intro">{{ T "projectsIntro" }}</p>
+  {{- if $rows }}
+  <ul class="project-cards">
+    {{- range $rows }}
+    {{ partial "project/card.html" . }}
+    {{- end }}
+  </ul>
+  {{- else }}
+  <p class="ls-empty">{{ T "projectsEmpty" }}</p>
+  {{- end }}
+</main>
+{{ end }}

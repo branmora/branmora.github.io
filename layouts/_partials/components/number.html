@@ -1,0 +1,8 @@
+{{- /* A number as 1,234.5 in both languages (DECISIONS/005), with a typographic minus.
+Context: dict "value" (a number), "digits" (decimal places, default 0), "suffix" (optional, e.g. %). */ -}}
+{{- $v := float .value -}}
+{{- $digits := .digits | default 0 -}}
+{{- $shown := lang.FormatNumberCustom $digits (math.Abs $v) "- . ," -}}
+{{- if lt $v 0 }}{{ $shown = printf "−%s" $shown }}{{ end -}}
+<data value="{{ .value }}">{{ $shown }}{{ .suffix }}</data>
+{{- /**/ -}}

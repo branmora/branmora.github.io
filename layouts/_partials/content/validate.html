@@ -1,0 +1,312 @@
+{{- /*
+  Validates a post, note, or project against CONTENT.md and fails the build on the first look at a bad one.
+
+  Takes the page. Every problem is reported with `errorf` as "<content file>: <problem>", the
+  content file's path from the repository root, so the build lists them all and then fails.
+  Returns false when it reported a problem, so callers can stop before reading a bad piece;
+  true for a valid piece and for any page that is not a piece.
+
+  A regular page is a project when it sits under a `projects/` folder, and content/validate-project.html
+  checks it; any other regular page is a piece when it sets `type` or sits under a `posts/` or `notes/` folder.
+  The date is Hugo's own: it fails the build on a malformed one; this partial reports a missing one.
+*/ -}}
+{{- $page := . -}}
+{{- $ok := true -}}
+{{- $piece := false -}}
+{{- if partial "content/is-project.html" $page -}}
+  {{- /* A project (spec 011) is checked against its own model, with the same message form. */ -}}
+  {{- $ok = partial "content/validate-project.html" $page -}}
+{{- else -}}
+  {{- $piece = partial "content/is-piece.html" $page -}}
+{{- end -}}
+
+{{- if $piece -}}
+{{- $at := strings.TrimPrefix (printf "%s/" hugo.WorkingDir) $page.File.Filename -}}
+{{- $p := $page.Params -}}
+{{- $lang := $page.Language.Lang -}}
+{{- $topics := site.Params.topics -}}
+{{- $date := `^\d{4}-\d{2}-\d{2}$` -}}
+{{- $checksum := `^(sha256:)?[0-9a-f]{64}$` -}}
+
+{{- /* Top-level fields. */ -}}
+{{- $type := index $p "type" -}}
+{{- $kind := "" -}}
+{{- if not (isset $p "type") -}}
+  {{- $ok = false -}}{{- errorf "%s: type is missing" $at -}}
+{{- else if not (in (slice "post" "note") (printf "%v" $type)) -}}
+  {{- $ok = false -}}{{- errorf "%s: type must be post or note" $at -}}
+{{- else -}}
+  {{- $kind = $type -}}
+{{- end -}}
+{{- $post := eq $kind "post" -}}
+{{- /* A post leads with one chart or with one image (spec 019). A post led by an image needs no
+   method or sources; a post led by a chart, its own or its translation's, needs both. A note's
+   `image` is not a field, as before. */ -}}
+{{- $led := and $post (isset $p "image") -}}
+{{- $charted := and $post (not $led) -}}
+
+{{- /* Required text fields: title for every piece; method for posts. The code version and the
+   command are optional for every piece (spec 013), and text when set. */ -}}
+{{- $texts := slice "title" -}}
+{{- if $charted -}}{{- $texts = $texts | append "method" -}}{{- end -}}
+{{- range $texts -}}
+  {{- $v := index $p . -}}
+  {{- if not (isset $p .) -}}
+    {{- $ok = false -}}{{- errorf "%s: %s is missing" $at . -}}
+  {{- else if ne (printf "%T" $v) "string" -}}
+    {{- $ok = false -}}{{- errorf "%s: %s must be text" $at . -}}
+  {{- else if eq (strings.TrimSpace $v) "" -}}
+    {{- $ok = false -}}{{- errorf "%s: %s is empty" $at . -}}
+  {{- end -}}
+{{- end -}}
+{{- range slice "method" "code_version" "command" "translationkey" -}}
+  {{- if and (not (in $texts .)) (isset $p .) (ne (printf "%T" (index $p .)) "string") -}}
+    {{- $ok = false -}}{{- errorf "%s: %s must be text" $at . -}}
+  {{- end -}}
+{{- end -}}
+
+{{- /* Fields for search and sharing (spec 020), checked by content/validate-sharing.html. */ -}}
+{{- if not (partial "content/validate-sharing.html" (dict "page" $page "fields" (slice "description" "slug" "short_title"))) -}}
+  {{- $ok = false -}}
+{{- end -}}
+
+{{- if $page.Date.IsZero -}}
+  {{- $ok = false -}}{{- errorf "%s: date is missing" $at -}}
+{{- end -}}
+
+{{- /* topics: a list of one or more of the five slugs. */ -}}
+{{- $t := index $p "topics" -}}
+{{- if not (isset $p "topics") -}}
+  {{- $ok = false -}}{{- errorf "%s: topics is missing" $at -}}
+{{- else if not (reflect.IsSlice $t) -}}
+  {{- $ok = false -}}{{- errorf "%s: topics must be a list of topic slugs" $at -}}
+{{- else if not $t -}}
+  {{- $ok = false -}}{{- errorf "%s: topics is empty" $at -}}
+{{- else -}}
+  {{- range $i, $slug := $t -}}
+    {{- if ne (printf "%T" $slug) "string" -}}
+      {{- $ok = false -}}{{- errorf "%s: topics[%d] must be a topic slug" $at $i -}}
+    {{- else if not (in $topics $slug) -}}
+      {{- $ok = false -}}{{- errorf "%s: unknown topic %q in topics; known topics are %s" $at $slug (delimit $topics ", ") -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{- /* linkedin: a URL, required for posts. */ -}}
+{{- $li := index $p "linkedin" -}}
+{{- if isset $p "linkedin" -}}
+  {{- if or (ne (printf "%T" $li) "string") (not (findRE `^https?://\S+$` $li)) -}}
+    {{- $ok = false -}}{{- errorf "%s: linkedin must be a URL" $at -}}
+  {{- end -}}
+{{- else if $post -}}
+  {{- $ok = false -}}{{- errorf "%s: linkedin is missing" $at -}}
+{{- end -}}
+
+{{- /* figures: a list of {png, option, csv, alt}; a post has exactly one, or none when a
+       translation's chart stands in for it. */ -}}
+{{- $named := slice -}}
+{{- $figs := index $p "figures" -}}
+{{- if isset $p "figures" -}}
+  {{- if not (reflect.IsSlice $figs) -}}
+    {{- $ok = false -}}{{- errorf "%s: figures must be a list" $at -}}
+  {{- else -}}
+    {{- if and $post (gt (len $figs) 1) -}}
+      {{- $ok = false -}}{{- errorf "%s: figures has %d charts; a post has exactly one" $at (len $figs) -}}
+    {{- end -}}
+    {{- range $i, $f := $figs -}}
+      {{- if not (reflect.IsMap $f) -}}
+        {{- $ok = false -}}{{- errorf "%s: figures[%d] must be a figure with png, csv, and alt" $at $i -}}
+      {{- else -}}
+        {{- range $key := slice "png" "csv" "alt" "option" -}}
+          {{- $v := index $f $key -}}
+          {{- $optional := eq $key "option" -}}
+          {{- if not (isset $f $key) -}}
+            {{- if not $optional -}}{{- $ok = false -}}{{- errorf "%s: figures[%d].%s is missing" $at $i $key -}}{{- end -}}
+          {{- else if or (ne (printf "%T" $v) "string") (eq (strings.TrimSpace $v) "") -}}
+            {{- $ok = false -}}{{- errorf "%s: figures[%d].%s must be %s" $at $i $key (cond (eq $key "alt") "text" "a file name") -}}
+          {{- else if ne $key "alt" -}}
+            {{- $named = $named | append $v -}}
+            {{- $ext := dict "png" ".png" "csv" ".csv" "option" ".json" -}}
+            {{- $r := $page.Resources.Get $v -}}
+            {{- if not $r -}}
+              {{- $ok = false -}}{{- errorf "%s: figures[%d].%s names %s, which is not in the bundle" $at $i $key $v -}}
+            {{- else if ne (path.Ext $v) (index $ext $key) -}}
+              {{- $ok = false -}}{{- errorf "%s: figures[%d].%s names %s, which is not a %s file" $at $i $key $v (index $ext $key) -}}
+            {{- else if not (strings.HasSuffix $v (printf ".%s%s" $lang (index $ext $key))) -}}
+              {{- $ok = false -}}{{- errorf "%s: figures[%d].%s names %s, which does not carry the language %s before its extension" $at $i $key $v $lang -}}
+            {{- else if eq $key "png" -}}
+              {{- $size := printf "%dx%d" $r.Width $r.Height -}}
+              {{- if not (in (slice "1200x1200" "1080x1350") $size) -}}
+                {{- $ok = false -}}{{- errorf "%s: figures[%d].png is %s pixels; it must be 1200x1200 or 1080x1350" $at $i $size -}}
+              {{- end -}}
+            {{- else if eq $key "csv" -}}
+              {{- $rows := 0 -}}
+              {{- range split (strings.TrimSpace $r.Content) "\n" -}}
+                {{- if strings.TrimSpace . -}}{{- $rows = add $rows 1 -}}{{- end -}}
+              {{- end -}}
+              {{- if lt $rows 2 -}}
+                {{- $ok = false -}}{{- errorf "%s: figures[%d].csv names %s, which needs a header row and at least one data row" $at $i $v -}}
+              {{- end -}}
+            {{- else if eq $key "option" -}}
+              {{- $json := dict -}}
+              {{- with try (transform.Unmarshal (dict "format" "json") $r.Content) -}}
+                {{- if .Err -}}
+                  {{- $ok = false -}}{{- errorf "%s: figures[%d].option names %s, which is not valid JSON" $at $i $v -}}
+                {{- else if not (reflect.IsMap .Value) -}}
+                  {{- $ok = false -}}{{- errorf "%s: figures[%d].option names %s, which is not a JSON object" $at $i $v -}}
+                {{- end -}}
+              {{- end -}}
+            {{- end -}}
+          {{- end -}}
+        {{- end -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- if and $led (isset $p "figures") -}}
+  {{- $ok = false -}}{{- errorf "%s: image and figures are both set; a post leads with one chart or one image, not both" $at -}}
+{{- end -}}
+{{- if and $charted (not $figs) -}}
+  {{- $standIn := false -}}
+  {{- range $page.Translations -}}
+    {{- if .Params.figures -}}{{- $standIn = true -}}{{- end -}}
+  {{- end -}}
+  {{- if not $standIn -}}
+    {{- $ok = false -}}{{- errorf "%s: figures is missing, and there is no image and no translation's chart to stand in; a post leads with one chart or one image" $at -}}
+  {{- end -}}
+{{- end -}}
+
+{{- /* image: a post's leading image (spec 019), a {src, alt} as a project's is: src a .png, .jpg,
+       or .webp file in the bundle, alt text in the file's language. It counts as named. */ -}}
+{{- if $led -}}
+  {{- $img := index $p "image" -}}
+  {{- if not (reflect.IsMap $img) -}}
+    {{- $ok = false -}}{{- errorf "%s: image must have a src and an alt" $at -}}
+  {{- else -}}
+    {{- $isrc := index $img "src" -}}
+    {{- if not (isset $img "src") -}}
+      {{- $ok = false -}}{{- errorf "%s: image.src is missing" $at -}}
+    {{- else if or (ne (printf "%T" $isrc) "string") (eq (strings.TrimSpace $isrc) "") -}}
+      {{- $ok = false -}}{{- errorf "%s: image.src must be a file name" $at -}}
+    {{- else -}}
+      {{- $named = $named | append $isrc -}}
+      {{- if not ($page.Resources.Get $isrc) -}}
+        {{- $ok = false -}}{{- errorf "%s: image.src names %s, which is not in the bundle" $at $isrc -}}
+      {{- else if not (in (slice ".png" ".jpg" ".webp") (lower (path.Ext $isrc))) -}}
+        {{- $ok = false -}}{{- errorf "%s: image.src names %s, which is not a .png, .jpg, or .webp image" $at $isrc -}}
+      {{- end -}}
+    {{- end -}}
+    {{- $ialt := index $img "alt" -}}
+    {{- if not (isset $img "alt") -}}
+      {{- $ok = false -}}{{- errorf "%s: image.alt is missing" $at -}}
+    {{- else if or (ne (printf "%T" $ialt) "string") (eq (strings.TrimSpace $ialt) "") -}}
+      {{- $ok = false -}}{{- errorf "%s: image.alt must be text" $at -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{- /* Images in the text (CONTENT.md, Images in the text): a note's text may show an image from its
+       bundle with Markdown image syntax, `![alt](file "caption")`. Each needs alt text and a .png,
+       .jpg, or .webp file in the bundle, and counts as named. HTML comments and fenced code are
+       not text the page shows, so images written there are not checked. */ -}}
+{{- $text := replaceRE `(?s)<!--.*?-->` "" $page.RawContent -}}
+{{- $text = replaceRE "(?ms)^ {0,3}(```|~~~).*?^ {0,3}(```|~~~)" "" $text -}}
+{{- range findRESubmatch `!\[((?:[^\]\\]|\\.)*)\]\(\s*<?([^\s<>()]+)>?(?:\s+"[^"]*")?\s*\)` $text -}}
+  {{- $alt := strings.TrimSpace (index . 1) -}}
+  {{- $src := index . 2 -}}
+  {{- if ne $kind "note" -}}
+    {{- $ok = false -}}{{- errorf "%s: the text shows %s; only a note's text may show images" $at $src -}}
+  {{- else if not ($page.Resources.Get $src) -}}
+    {{- $ok = false -}}{{- errorf "%s: the text shows %s, which is not in the bundle" $at $src -}}
+  {{- else if not (in (slice ".png" ".jpg" ".webp") (path.Ext $src)) -}}
+    {{- $ok = false -}}{{- errorf "%s: the text shows %s, which is not a .png, .jpg, or .webp image" $at $src -}}
+  {{- else -}}
+    {{- $named = $named | append $src -}}
+  {{- end -}}
+  {{- if not $alt -}}
+    {{- $ok = false -}}{{- errorf "%s: the text shows %s without alt text" $at $src -}}
+  {{- end -}}
+{{- end -}}
+
+{{- /* A bundle carries no file its front matter does not name. Files marked with another
+       language belong to that language's version. */ -}}
+{{- range $page.Resources -}}
+  {{- if ne .ResourceType "page" -}}
+    {{- $name := .Name -}}
+    {{- $other := false -}}
+    {{- range hugo.Sites -}}
+      {{- if and (ne .Language.Lang $lang) (findRE (printf `\.%s\.[^.]+$` .Language.Lang) $name) -}}{{- $other = true -}}{{- end -}}
+    {{- end -}}
+    {{- if and (not $other) (not (in $named $name)) -}}
+      {{- $ok = false -}}{{- errorf "%s: the bundle carries %s, which no entry in figures, no image, and no image in the text names" $at $name -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{- /* sources: a list of {title, url}. */ -}}
+{{- $src := index $p "sources" -}}
+{{- if isset $p "sources" -}}
+  {{- if not (reflect.IsSlice $src) -}}
+    {{- $ok = false -}}{{- errorf "%s: sources must be a list" $at -}}
+  {{- else if and $charted (not $src) -}}
+    {{- $ok = false -}}{{- errorf "%s: sources is empty" $at -}}
+  {{- else -}}
+    {{- range $i, $s := $src -}}
+      {{- if not (reflect.IsMap $s) -}}
+        {{- $ok = false -}}{{- errorf "%s: sources[%d] must be a source with a title" $at $i -}}
+      {{- else -}}
+        {{- if not (isset $s "title") -}}
+          {{- $ok = false -}}{{- errorf "%s: sources[%d].title is missing" $at $i -}}
+        {{- else if or (ne (printf "%T" (index $s "title")) "string") (eq (strings.TrimSpace (index $s "title")) "") -}}
+          {{- $ok = false -}}{{- errorf "%s: sources[%d].title must be text" $at $i -}}
+        {{- end -}}
+        {{- if isset $s "url" -}}
+          {{- $u := index $s "url" -}}
+          {{- if or (ne (printf "%T" $u) "string") (not (findRE `^https?://\S+$` $u)) -}}
+            {{- $ok = false -}}{{- errorf "%s: sources[%d].url must be a URL" $at $i -}}
+          {{- end -}}
+        {{- end -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+{{- else if $charted -}}
+  {{- $ok = false -}}{{- errorf "%s: sources is missing" $at -}}
+{{- end -}}
+
+{{- /* datasets: optional (spec 013); when set, a list of {url, license, retrieved}, each with an
+   optional checksum. */ -}}
+{{- $ds := index $p "datasets" -}}
+{{- if isset $p "datasets" -}}
+  {{- if not (reflect.IsSlice $ds) -}}
+    {{- $ok = false -}}{{- errorf "%s: datasets must be a list" $at -}}
+  {{- else -}}
+    {{- range $i, $d := $ds -}}
+      {{- if not (reflect.IsMap $d) -}}
+        {{- $ok = false -}}{{- errorf "%s: datasets[%d] must be a dataset with url, license, and retrieved" $at $i -}}
+      {{- else -}}
+        {{- range $key := slice "url" "license" "retrieved" "checksum" -}}
+          {{- $v := index $d $key -}}
+          {{- $vt := printf "%T" $v -}}
+          {{- if not (isset $d $key) -}}
+            {{- if ne $key "checksum" -}}
+              {{- $ok = false -}}{{- errorf "%s: datasets[%d].%s is missing" $at $i $key -}}
+            {{- end -}}
+          {{- else if eq $key "retrieved" -}}
+            {{- if not (or (eq $vt "time.Time") (and (eq $vt "string") (findRE $date $v))) -}}
+              {{- $ok = false -}}{{- errorf "%s: datasets[%d].retrieved must be a date, YYYY-MM-DD" $at $i -}}
+            {{- end -}}
+          {{- else if or (ne $vt "string") (eq (strings.TrimSpace $v) "") -}}
+            {{- $ok = false -}}{{- errorf "%s: datasets[%d].%s must be %s" $at $i $key (cond (eq $key "url") "a URL" "text") -}}
+          {{- else if and (eq $key "url") (not (findRE `^https?://\S+$` $v)) -}}
+            {{- $ok = false -}}{{- errorf "%s: datasets[%d].url must be a URL" $at $i -}}
+          {{- else if and (eq $key "checksum") (not (findRE $checksum $v)) -}}
+            {{- $ok = false -}}{{- errorf "%s: datasets[%d].checksum must be a SHA-256 digest, 64 lowercase hex characters" $at $i -}}
+          {{- end -}}
+        {{- end -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- end -}}
+
+{{- return $ok -}}

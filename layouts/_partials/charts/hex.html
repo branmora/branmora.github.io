@@ -1,0 +1,5 @@
+{{- /* The hex of one color token, aliases followed. Context: dict "table" "path" (see resolve.html). */ -}}
+{{- $v := partial "charts/resolve.html" . -}}
+{{- $hex := index $v "hex" -}}
+{{- if not $hex }}{{ errorf "charts/hex.html: %s has no hex" .path }}{{ end -}}
+{{- return $hex -}}

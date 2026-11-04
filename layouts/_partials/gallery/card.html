@@ -1,0 +1,12 @@
+{{- /* Gallery: the cards (spec 010, DECISIONS/015), from this build's content: a project's card as the
+projects list and home draw it, and home's featured cards, each led by its chart or image. */ -}}
+<div class="column wide">
+  {{- with first 1 (partial "content/projects.html" "") }}
+  <ul class="project-cards">
+    {{- range . }}
+    {{ partial "project/card.html" (merge . (dict "level" 3)) }}
+    {{- end }}
+  </ul>
+  {{- end }}
+  {{ partial "home/featured.html" . }}
+</div>

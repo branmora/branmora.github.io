@@ -1,0 +1,77 @@
+{{- /* The image a page's Open Graph and Twitter tags, and a piece's BlogPosting, name (specs 007 and
+020). Context: the page. Returns a dict: "url" (absolute), "width", "height", "alt", and "lead",
+true when the image is made from the image that leads the piece's card rather than the site card.
+
+- A post or note: the image that leads its card (spec 020, #200), in this order: its first chart,
+  the static PNG on paper; else the image a post leads with (spec 019); else the first image of a
+  note's text; else, for a post, its translation's chart (content/model.html resolves that
+  fallback into its figures). The image is fitted inside 1200x630 less one line (42px) top and
+  bottom and six cells (72px) at the sides, never upscaled, and padded to 1200x630 with
+  theme.light.surface, the light page background it sits on (DESIGN.md, Site card). Its alt text
+  is the lead image's. Hugo makes one image per source, so the pages that show it share it.
+- A project with an image (spec 011): that image, as the page and the model name it.
+- Every other page: the site card of its language (site/card.html). */ -}}
+{{- $page := . }}
+{{- $out := dict }}
+{{- if and .IsPage (in (slice "post" "note") .Type) }}
+  {{- $m := partialCached "content/model.html" $page $page.Path }}
+  {{- $source := false }}
+  {{- $alt := "" }}
+  {{- with index ($m.figures | default slice) 0 }}
+    {{- $f := . }}
+    {{- range slice $page | append $page.Translations }}
+      {{- range .Resources.ByType "image" }}
+        {{- if and (not $source) (eq .Permalink $f.png) }}{{ $source = . }}{{ $alt = $f.alt }}{{ end }}
+      {{- end }}
+    {{- end }}
+  {{- end }}
+  {{- if not $source }}
+    {{- with $m.image }}
+      {{- $alt = .alt }}
+      {{- $source = partial "content/text-image.html" (dict "page" $page "name" $page.Params.image.src) }}
+    {{- end }}
+  {{- end }}
+  {{- if and (not $source) $m.images }}
+    {{- /* The first image the text shows, found as content/model.html finds them. */}}
+    {{- $text := replaceRE `(?s)<!--.*?-->` "" $page.RawContent }}
+    {{- $text = replaceRE "(?ms)^ {0,3}(```|~~~).*?^ {0,3}(```|~~~)" "" $text }}
+    {{- range $match := findRESubmatch `!\[((?:[^\]\\]|\\.)*)\]\(\s*<?([^\s<>()]+)>?(?:\s+"([^"]*)")?\s*\)` $text }}
+      {{- if not $source }}
+        {{- with partial "content/text-image.html" (dict "page" $page "name" (index $match 2)) }}
+          {{- $source = . }}
+          {{- $alt = strings.TrimSpace (index $match 1) }}
+        {{- end }}
+      {{- end }}
+    {{- end }}
+  {{- end }}
+  {{- if and $source (in (slice "image/png" "image/jpeg" "image/webp") $source.MediaType.Type) }}
+    {{- $base := os.ReadFile "tokens/base.tokens.json" | transform.Unmarshal }}
+    {{- $site := os.ReadFile "tokens/site.tokens.json" | transform.Unmarshal }}
+    {{- $t := dict }}
+    {{- range slice $base $site }}
+      {{- range partial "tokens/walk.html" (dict "node" . "path" slice "type" "") }}
+        {{- $t = merge $t (dict (delimit .path ".") .value) }}
+      {{- end }}
+    {{- end }}
+    {{- $ground := partial "charts/hex.html" (dict "table" $t "path" "theme.light.surface") }}
+    {{- $fit := $source.Fit "1056x546 png" }}
+    {{- $x := sub 1200 $fit.Width }}
+    {{- $y := sub 630 $fit.Height }}
+    {{- $left := div $x 2 }}
+    {{- $top := div $y 2 }}
+    {{- $img := $fit.Filter (images.Padding $top (sub $x $left) (sub $y $top) $left $ground) }}
+    {{- $out = dict "url" $img.Permalink "width" $img.Width "height" $img.Height "alt" $alt "lead" true }}
+  {{- end }}
+{{- end }}
+{{- if and (not $out) (partial "content/is-project.html" $page) }}
+  {{- with (partialCached "content/model.html" $page $page.Path).image }}
+    {{- $r := $page.Resources.Get $page.Params.image.src }}
+    {{- $out = dict "url" .url "width" $r.Width "height" $r.Height "alt" .alt "lead" false }}
+  {{- end }}
+{{- end }}
+{{- if not $out }}
+  {{- with partialCached "site/card.html" site.Language.Lang site.Language.Lang }}
+    {{- $out = dict "url" .Permalink "width" .Width "height" .Height "alt" (printf "%s: %s" (T "siteTitle") (T "siteDescription")) "lead" false }}
+  {{- end }}
+{{- end }}
+{{- return $out }}

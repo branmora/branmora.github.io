@@ -1,0 +1,33 @@
+{{- /* The site header (spec 010): the title chip, the site's name as the link to this language's
+home; the navigation (writing, projects, about); then the tools at the row's end: the search
+button that opens the palette (shown by its script), the language switcher, and the theme toggle.
+The switcher opens this page's translation, or the other language's home when the page has none.
+The current place carries aria-current: "page" on the place itself, "true" on a post, note, or
+project under it. Context: the page. */ -}}
+{{- $target := partial "site/translation.html" . }}
+{{- $page := . }}
+{{- $places := slice }}
+{{- with site.GetPage "/writing" }}{{ $places = $places | append (dict "page" . "label" (T "nav_writing") "under" (slice "post" "note")) }}{{ end }}
+{{- with site.GetPage "/projects" }}{{ $places = $places | append (dict "page" . "label" (T "nav_projects") "under" (slice "project")) }}{{ end }}
+{{- with site.GetPage "/about" }}{{ $places = $places | append (dict "page" . "label" (T "nav_about") "under" slice) }}{{ end }}
+{{- $kind := "" }}
+{{- if partial "content/is-piece.html" $page }}{{ $kind = "post" }}{{ else if partial "content/is-project.html" $page }}{{ $kind = "project" }}{{ end }}
+<header class="site-header">
+  {{ partial "components/chip.html" . }}
+  <nav class="site-nav" aria-label="{{ T "navLabel" }}">
+    <ul>
+      {{- range $places }}
+      {{- $current := "" }}
+      {{- if eq .page.RelPermalink $page.RelPermalink }}{{ $current = "page" }}{{ else if and $kind (in .under $kind) }}{{ $current = "true" }}{{ end }}
+      <li><a href="{{ .page.RelPermalink }}"{{ with $current }} aria-current="{{ . }}"{{ end }}>{{ .label }}</a></li>
+      {{- end }}
+    </ul>
+  </nav>
+  <div class="site-tools">
+    <button type="button" class="site-search" data-palette-open hidden><kbd aria-hidden="true">/</kbd> <span>{{ T "searchButton" }}</span></button>
+    {{- with $target }}
+    <a class="site-language" href="{{ .RelPermalink }}" hreflang="{{ .Language.Lang }}" lang="{{ .Language.Lang }}" rel="alternate">{{ T "switchLanguage" }}</a>
+    {{- end }}
+    {{ partial "components/theme-toggle.html" . }}
+  </div>
+</header>

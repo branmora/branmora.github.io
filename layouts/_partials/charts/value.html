@@ -1,0 +1,28 @@
+{{- /*
+One plotted number for a chart's table, with the precision its data carries: 100 stays 100,
+131.4 stays 131.4 and 1234567.5 reads 1,234,567.5, the way ECharts writes the same value in its
+tooltip, so the chart, the tooltip and the table never disagree (DECISIONS/005). Grouping and
+the minus come from components/number.html. Context: the number; or dict "value" and "suffix".
+
+The decimals come from the shortest form of the number, printf "%v". That form switches to
+exponent notation for large and small values (1.2345675e+06, 5e-05), so the exponent is taken
+off the digits after the point: 7 − 6 = 1 decimal, 0 − (−5) = 5 decimals.
+*/ -}}
+{{- $v := . -}}
+{{- $suffix := "" -}}
+{{- if reflect.IsMap . }}{{ $v = .value }}{{ $suffix = .suffix }}{{ end -}}
+{{- $digits := 0 -}}
+{{- if ne (math.Floor $v) (float $v) -}}
+  {{- $parts := split (lower (printf "%v" (float $v))) "e" -}}
+  {{- $fraction := 0 -}}
+  {{- with index (split (index $parts 0) ".") 1 }}{{ $fraction = len . }}{{ end -}}
+  {{- $exponent := 0 -}}
+  {{- if gt (len $parts) 1 -}}
+    {{- $e := index $parts 1 -}}
+    {{- $magnitude := strings.TrimLeft "0" (strings.TrimLeft "+-" $e) | default "0" -}}
+    {{- $exponent = int $magnitude -}}
+    {{- if hasPrefix $e "-" }}{{ $exponent = sub 0 $exponent }}{{ end -}}
+  {{- end -}}
+  {{- $digits = int (math.Max 0 (sub $fraction $exponent)) -}}
+{{- end -}}
+{{- return partial "components/number.html" (dict "value" $v "digits" $digits "suffix" $suffix) -}}

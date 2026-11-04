@@ -1,0 +1,20 @@
+{{- /* Each step of type.size, largest first, set in its own face, with its size and line in px. */ -}}
+{{- $site := os.ReadFile "tokens/site.tokens.json" | transform.Unmarshal -}}
+{{- $sizes := index $site "type" "size" -}}
+{{- $leading := index $site "type" "leading" -}}
+{{- $lineOf := dict "title" "title" "h1" "title" "h2" "heading" "h3" "heading" "body" "body" "ui" "ui" "small" "ui" -}}
+{{- $mono := slice "ui" "small" -}}
+<div class="column type-scale">
+  {{- range slice "title" "h1" "h2" "h3" "body" "ui" "small" }}
+  {{- $px := mul (index $sizes . "$value" "value") 16 }}
+  {{- $line := mul $px (index $leading (index $lineOf .) "$value") }}
+  <div class="scale-row">
+    <span class="scale-label">{{ printf "%s  %g/%.0f" . $px $line }}</span>
+    {{- if in $mono . }}
+    <span class="scale-sample" data-step="{{ . }}">{{ index $.c.samples . }}</span>
+    {{- else }}
+    <p class="scale-sample" data-step="{{ . }}">{{ index $.c.samples . }}</p>
+    {{- end }}
+  </div>
+  {{- end }}
+</div>

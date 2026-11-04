@@ -1,0 +1,14 @@
+{{- /* Per-page metadata (spec 007): the description, the canonical address, and the language
+alternates: the page itself, each translation it has, and an x-default that leads to the
+default language's version, or to the page itself when it has none. The 404 pages answer at any
+address, so they carry only the description. Context: the page. */ -}}
+<meta name="description" content="{{ partial "site/description.html" . }}">
+{{- if ne .Kind "404" }}
+<link rel="canonical" href="{{ .Permalink }}">
+{{- $default := . }}
+{{- range .AllTranslations }}{{ if eq .Language.Lang hugo.Sites.Default.Language.Lang }}{{ $default = . }}{{ end }}{{ end }}
+{{- range .AllTranslations }}
+<link rel="alternate" hreflang="{{ .Language.Lang }}" href="{{ .Permalink }}">
+{{- end }}
+<link rel="alternate" hreflang="x-default" href="{{ $default.Permalink }}">
+{{- end }}

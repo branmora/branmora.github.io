@@ -1,0 +1,15 @@
+{{- /* The site card of each language, at the size a feed shows it, captioned with its language.
+Each image is the one the pages' og:image names (site/card.html); its text alternative is the
+card's words, read from that language's string file. */ -}}
+<div class="column site-cards">
+  {{- range hugo.Sites }}
+  {{- $lang := .Language.Lang }}
+  {{- $strings := os.ReadFile (printf "i18n/%s.toml" $lang) | transform.Unmarshal }}
+  {{- with partialCached "site/card.html" $lang $lang }}
+  <figure class="site-card" lang="{{ $lang }}">
+    <img src="{{ .RelPermalink }}" width="{{ .Width }}" height="{{ .Height }}" alt="{{ $strings.siteTitle }}: {{ $strings.siteDescription }}">
+    <figcaption>{{ $lang }}</figcaption>
+  </figure>
+  {{- end }}
+  {{- end }}
+</div>
