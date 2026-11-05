@@ -1,0 +1,9 @@
+{{- /* The site's deferred scripts: the components, then the one key listener and what binds keys to
+it (the palette and the list). The pages built on baseof.html and the root 404 page share it.
+Context: the page. */ -}}
+  {{- with resources.Get "js/components.js" | minify | fingerprint }}
+  <script src="{{ .RelPermalink }}" integrity="{{ .Data.Integrity }}" defer></script>
+  {{- end }}
+  {{- with slice (resources.Get "js/keys.js") (resources.Get "js/palette.js") (resources.Get "js/list-keys.js") | resources.Concat "js/site-keys.js" | minify | fingerprint }}
+  <script src="{{ .RelPermalink }}" integrity="{{ .Data.Integrity }}" defer></script>
+  {{- end }}

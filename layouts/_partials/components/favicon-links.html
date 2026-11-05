@@ -1,0 +1,11 @@
+{{- /* The favicon (spec 006), drawn from the tokens by scripts/make_favicon.py: the SVG, a 32px PNG,
+and the 180px touch icon. Context: none. */ -}}
+{{- with resources.Get "icons/favicon.svg" | fingerprint }}
+  <link rel="icon" type="image/svg+xml" href="{{ .RelPermalink }}">
+{{- end }}
+{{- with resources.Get "icons/favicon-32.png" | fingerprint }}
+  <link rel="icon" type="image/png" sizes="32x32" href="{{ .RelPermalink }}">
+{{- end }}
+{{- with resources.Get "icons/apple-touch-icon.png" | fingerprint }}
+  <link rel="apple-touch-icon" sizes="180x180" href="{{ .RelPermalink }}">
+{{- end }}

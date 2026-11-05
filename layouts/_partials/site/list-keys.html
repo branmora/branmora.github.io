@@ -1,0 +1,11 @@
+{{- /* The keys that drive the ls -l list (spec 006): j and k move, Enter opens, / searches. Hidden
+until list-keys.js shows them, since they do nothing without JavaScript; CSS hides them where
+there is no hover (touch), which has no such keys. Context: the list's rows. */ -}}
+{{- if . }}
+<div class="list-keys" data-list-keys hidden>
+  {{ partial "components/key-hints.html" (slice
+    (dict "keys" (slice "j" "k") "label" (T "paletteMove"))
+    (dict "keys" (slice (T "key_enter")) "label" (T "paletteOpen"))
+    (dict "keys" (slice "/") "label" (T "searchButton"))) }}
+</div>
+{{- end }}

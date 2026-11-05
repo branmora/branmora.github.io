@@ -1,0 +1,49 @@
+{{- /* About (spec 006): the author's facts as key: value lines under the title,
+the bio as prose, then the earlier roles and education as dated rows, and the links. No views
+line (spec 010). No photo. The ORCID line appears only once params.orcid
+is set. The facts are the content file's front matter; the labels come from i18n/<lang>.toml. */ -}}
+{{ define "main" }}
+{{- $p := .Params }}
+{{- $facts := slice
+  (dict "key" (T "about_name") "value" $p.name)
+  (dict "key" (T "about_profession") "value" $p.description)
+  (dict "key" (T "about_role") "value" $p.current.role)
+  (dict "key" (T "about_org") "value" $p.current.org)
+  (dict "key" (T "about_place") "value" $p.current.place)
+  (dict "key" (T "about_since") "value" $p.current.since)
+  (dict "key" (T "about_focus") "value" $p.current.focus) }}
+<main class="about">
+  <div class="prose">
+    <h1>{{ .Title }}</h1>
+    {{ partial "components/metadata.html" (dict "items" $facts "class" "about-facts") }}
+    {{ .Content }}
+    <h2>{{ T "aboutRoles" }}</h2>
+    <ul class="record">
+      {{- range $p.roles }}
+      <li><span class="record-years">{{ .years }}</span> <span><span class="record-title">{{ .role }}</span> <span class="record-where">{{ .org }}</span></span></li>
+      {{- end }}
+    </ul>
+    <h2>{{ T "aboutEducation" }}</h2>
+    <ul class="record">
+      {{- range $p.education }}
+      <li><span class="record-years">{{ .years }}</span> <span><span class="record-title">{{ .degree }}</span> <span class="record-where">{{ .school }}</span></span></li>
+      {{- end }}
+    </ul>
+    <h2>{{ T "aboutLinks" }}</h2>
+    <dl class="metadata about-links">
+      {{- range $p.links }}
+      <div>
+        <dt>{{ T (printf "link_%s" .key) }}</dt>
+        <dd><a href="{{ .url }}" rel="me">{{ .label }}</a></dd>
+      </div>
+      {{- end }}
+      {{- with site.Params.orcid }}
+      <div>
+        <dt>{{ T "link_orcid" }}</dt>
+        <dd><a href="https://orcid.org/{{ . }}" rel="me">{{ . }}</a></dd>
+      </div>
+      {{- end }}
+    </dl>
+  </div>
+</main>
+{{ end }}

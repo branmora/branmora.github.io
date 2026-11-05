@@ -1,0 +1,75 @@
+{{- /*
+The data table of one chart spec (gallery/charts/*.json): every number the chart draws, as HTML,
+so it reads without JavaScript. Numbers go through charts/value.html: each with the precision
+its data carries, as the chart and its tooltip write it (DECISIONS/005).
+The table sits in a <details>, closed until the reader opens it, and is always in the HTML.
+An estimate (coefficient and event-study kinds) has its row: the estimate and both bounds of its
+interval. In an event study the treatment and reference periods say so after the period, and the
+reference, set to zero by construction, has no bounds.
+A map lists every member with its value, then, in one "no value" row, the other land and the
+disputed areas it draws gray, read from the boundary file. Reading the file here publishes nothing.
+An event line is named in the row of the period it marks, with its label's words after the
+period, "2023-03 (public release of AI chat tools)", so a reader without the chart learns what
+the event was. The label starts with its date, so the date is taken off the front; a label
+that does not is written whole.
+Context: dict "spec", "label" (the summary), "id".
+*/ -}}
+{{- $s := .spec -}}
+<details class="chart-data">
+<summary>{{ .label }}</summary>
+<table aria-describedby="chart-{{ .id }}-title">
+  <thead><tr>{{ range $s.table.head }}<th scope="col">{{ . }}</th>{{ end }}</tr></thead>
+  <tbody>
+  {{- if or (eq $s.kind "line") (eq $s.kind "small-multiples") }}
+    {{- range $i, $x := $s.x }}
+    <tr><th scope="row">{{ $x }}</th>{{ range $s.series }}<td>{{ partial "charts/value.html" (index .values $i) }}</td>{{ end }}</tr>
+    {{- end }}
+  {{- else if eq $s.kind "bar" }}
+    {{- range $s.items }}
+    <tr><th scope="row">{{ .name }}</th><td>{{ partial "charts/value.html" .count }}</td><td>{{ partial "charts/value.html" (dict "value" .share "suffix" "%") }}</td></tr>
+    {{- end }}
+  {{- else if eq $s.kind "dot-range" }}
+    {{- range $s.rows }}
+    <tr><th scope="row">{{ .name }}</th>{{ range .values }}<td>{{ partial "charts/value.html" . }}</td>{{ end }}</tr>
+    {{- end }}
+  {{- else if eq $s.kind "event" }}
+    {{- $last := sub (len $s.x) 1 }}
+    {{- $event := "" }}
+    {{- with $s.event }}{{ $event = strings.TrimSpace (strings.TrimPrefix .at .label) }}{{ end }}
+    {{- range $i, $x := $s.x }}
+    <tr><th scope="row">{{ $x }}{{ if and $event (eq $x $s.event.at) }} ({{ $event }}){{ end }}{{ if eq $i $last }} ({{ $s.table.incomplete }}){{ end }}</th><td>{{ partial "charts/value.html" (index $s.values $i) }}</td></tr>
+    {{- end }}
+  {{- else if eq $s.kind "slope" }}
+    {{- range $s.groups }}
+    <tr><th scope="row">{{ .name }}</th>{{ range .values }}<td>{{ partial "charts/value.html" (dict "value" . "suffix" ($s.suffix | default "")) }}</td>{{ end }}</tr>
+    {{- end }}
+  {{- else if eq $s.kind "scatter" }}
+    {{- range $g := $s.groups }}{{ range $g.points }}
+    <tr><th scope="row">{{ .name }}</th><td>{{ $g.name }}</td><td>{{ partial "charts/value.html" .x }}</td><td>{{ partial "charts/value.html" .y }}</td></tr>
+    {{- end }}{{ end }}
+  {{- else if eq $s.kind "map" }}
+    {{- range $s.values }}
+    <tr><th scope="row">{{ .name }}</th><td>{{ partial "charts/value.html" .value }}</td></tr>
+    {{- end }}
+    {{- /* Other land and the disputed areas: drawn gray, with no value. */}}
+    {{- $others := slice }}
+    {{- with resources.Get (printf "maps/%s.json" $s.map) }}{{ range (.Content | transform.Unmarshal).features }}{{ if not .properties.iso_a3 }}{{ $others = $others | append .properties.name }}{{ end }}{{ end }}{{ end }}
+    {{- with $others }}
+    <tr><th scope="row">{{ $s.noValue }}</th><td>{{ delimit . ", " }}</td></tr>
+    {{- end }}
+  {{- else if eq $s.kind "coefficients" }}
+    {{- range $s.rows }}
+    <tr><th scope="row">{{ .name }}</th><td>{{ partial "charts/value.html" .estimate }}</td><td>{{ partial "charts/value.html" .low }}</td><td>{{ partial "charts/value.html" .high }}</td></tr>
+    {{- end }}
+  {{- else if eq $s.kind "event-study" }}
+    {{- range $p := $s.periods }}
+    {{- $note := "" }}
+    {{- if eq .period $s.treatment }}{{ $note = $s.table.treatment }}{{ end }}
+    {{- if eq .period $s.reference }}{{ $note = $s.table.reference }}{{ end }}
+    <tr><th scope="row">{{ partial "charts/value.html" .period }}{{ with $note }} ({{ . }}){{ end }}</th><td>{{ partial "charts/value.html" .estimate }}</td>
+      {{- range $k := slice "low" "high" }}<td>{{ if isset $p $k }}{{ partial "charts/value.html" (index $p $k) }}{{ else }}{{ $s.table.none }}{{ end }}</td>{{ end }}</tr>
+    {{- end }}
+  {{- end }}
+  </tbody>
+</table>
+</details>

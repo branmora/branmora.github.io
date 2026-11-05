@@ -1,0 +1,14 @@
+{{- /* The 404 page (spec 006), one per language at /<lang>/404.html: what happened, and the way
+home. The words come from i18n/<lang>.toml. */ -}}
+{{ define "title" }}{{ T "notFoundTitle" }} · {{ T "siteTitle" }}{{ end }}
+{{ define "main" }}
+<main class="not-found">
+  <h1>{{ T "notFoundTitle" }}</h1>
+  {{ partial "components/metadata.html" (dict "items" (slice (dict "key" (T "notFoundStatus") "value" "404"))) }}
+  <p>{{ T "notFoundText" }}</p>
+  <p><a href="{{ site.Home.RelPermalink }}">{{ T "notFoundHome" }}</a></p>
+  {{- /* Search: the button opens the command palette, which finds pieces (#90). It does nothing
+  without JavaScript, so its script shows it. */}}
+  <p class="not-found-search"><button type="button" data-palette-open hidden><kbd aria-hidden="true">/</kbd> {{ T "notFoundSearch" }}</button></p>
+</main>
+{{ end }}

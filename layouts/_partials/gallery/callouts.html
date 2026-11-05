@@ -1,0 +1,7 @@
+<div class="column">
+  <p>{{ .c.before }}</p>
+  {{- range $i, $c := .c.items }}
+  {{ partial "components/callout.html" (dict "kind" $c.kind "text" $c.text "id" (printf "callout-%d" $i)) }}
+  {{- end }}
+  <p>{{ .c.after }}</p>
+</div>

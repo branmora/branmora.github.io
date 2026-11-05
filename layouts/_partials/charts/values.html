@@ -1,0 +1,33 @@
+{{- /*
+Every chart token as one flat map, for the scripts that draw charts: the token path joined by
+dots → its resolved value, aliases followed. A color becomes its hex (ECharts parses no
+oklch()), a dimension its number of px, a font family a CSS family list, a weight or number
+itself. Built from tokens/base.tokens.json and tokens/chart.tokens.json only.
+*/ -}}
+{{- $base := os.ReadFile "tokens/base.tokens.json" | transform.Unmarshal -}}
+{{- $chart := os.ReadFile "tokens/chart.tokens.json" | transform.Unmarshal -}}
+{{- $t := dict -}}
+{{- $types := dict -}}
+{{- range slice $base $chart -}}
+  {{- range partial "tokens/walk.html" (dict "node" . "path" slice "type" "") -}}
+    {{- $key := delimit .path "." -}}
+    {{- $t = merge $t (dict $key .value) -}}
+    {{- $types = merge $types (dict $key .type) -}}
+  {{- end -}}
+{{- end -}}
+{{- $out := dict -}}
+{{- range $key, $_ := $t -}}
+  {{- if hasPrefix $key "chart." -}}
+    {{- $v := partial "charts/resolve.html" (dict "table" $t "path" $key) -}}
+    {{- $type := index $types $key -}}
+    {{- if eq $type "color" -}}
+      {{- $v = index $v "hex" -}}
+    {{- else if eq $type "dimension" -}}
+      {{- $v = index $v "value" -}}
+    {{- else if eq $type "fontFamily" -}}
+      {{- $v = partial "charts/font.html" (dict "table" $t "path" $key) -}}
+    {{- end -}}
+    {{- $out = merge $out (dict $key $v) -}}
+  {{- end -}}
+{{- end -}}
+{{- return $out -}}

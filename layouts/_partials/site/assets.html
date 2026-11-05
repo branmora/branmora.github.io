@@ -1,0 +1,19 @@
+{{- /* What every page's head loads before its own tags: the favicons, the theme script (inline, so
+the page paints in the reader's theme), the tokens, the fonts, and the site's stylesheets. The
+pages built on baseof.html and the root 404 page (home.notfound.html) share it. Context: the page. */ -}}
+  {{- partialCached "components/favicon-links.html" . "favicon" }}
+  {{- with resources.Get "js/theme.js" | minify }}
+  <script>{{ .Content | safeJS }}</script>
+  {{- end }}
+  {{- $tokens := partialCached "tokens/stylesheet.html" . "tokens" }}
+  {{- $fonts := partialCached "fonts/stylesheet.html" . "fonts" }}
+  {{- $chartThemes := partialCached "charts/themes.html" . "charts" }}
+  {{- $base := partial "site/stylesheet.html" (resources.Get "css/base.css") }}
+  {{- $components := partial "site/stylesheet.html" (resources.Get "css/components.css") }}
+  {{- with resources.Get "fonts/ibm-plex/IBMPlexSans-Regular.woff2" | fingerprint }}
+  <link rel="preload" href="{{ .RelPermalink }}" as="font" type="font/woff2" crossorigin>
+  {{- end }}
+  <link rel="stylesheet" href="{{ $tokens.RelPermalink }}" integrity="{{ $tokens.Data.Integrity }}">
+  <link rel="stylesheet" href="{{ $fonts.RelPermalink }}" integrity="{{ $fonts.Data.Integrity }}">
+  <link rel="stylesheet" href="{{ $base.RelPermalink }}" integrity="{{ $base.Data.Integrity }}">
+  <link rel="stylesheet" href="{{ $components.RelPermalink }}" integrity="{{ $components.Data.Integrity }}">

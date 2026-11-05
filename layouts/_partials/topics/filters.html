@@ -1,0 +1,20 @@
+{{- /* The topic filters: a `topics:` key: value line of links to every topic's view in this
+language; home itself, the site's name in the header, is the unfiltered list. Topics are filters,
+not sections (spec 006). A topic has a view only once something in this language is filed under
+it, and the filters show only while at least two topics have one (spec 010). The current filter carries aria-current="page". Context: the
+current topic's slug, or "" on home. */ -}}
+{{- $current := . -}}
+{{- $views := slice -}}
+{{- range site.Params.topics }}
+  {{- with partialCached "topics/page.html" . . site.Language.Lang }}{{ $views = $views | append . }}{{ end }}
+{{- end }}
+{{- if ge (len $views) 2 }}
+<nav class="tags topic-filters" aria-label="{{ T "topicsFilterLabel" }}">
+  <span class="key">{{ T "topicsLabel" }}</span>
+  <ul>
+    {{- range $views }}
+    <li><a href="{{ .RelPermalink }}"{{ if eq .Params.topic $current }} aria-current="page"{{ end }}>{{ .Title }}</a></li>
+    {{- end }}
+  </ul>
+</nav>
+{{- end }}

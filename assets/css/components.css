@@ -1,0 +1,1781 @@
+/*
+Components: the site's layout tracks and its terminal idioms, used lightly.
+
+Like base.css, every color, font, size, and space is a custom property from the tokens.
+Breakpoints repeat size.breakpoint.wide (56rem), since media queries cannot read properties.
+*/
+
+/* --- Tracks: the mono gutter beside the reading column ------------------------------------ */
+
+/* Below the wide breakpoint the gutter folds above the column. */
+.track {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  max-width: none;
+}
+
+.track > .gutter,
+.track > .column {
+  min-width: 0;
+}
+
+.track > .column {
+  max-width: var(--size-measure);
+}
+
+/* From the wide breakpoint a third track takes what the frame has left after the gutter and the
+   measure. Prose never enters it; a .wide block (a piece's figures) runs from the column's start
+   to the frame's end, so the extra width goes to charts and tables. */
+@media (min-width: 56rem) {
+  .track {
+    grid-template-columns: var(--size-gutter) minmax(0, var(--size-measure)) minmax(0, 1fr);
+    column-gap: var(--space-cell-4);
+  }
+
+  .track > .gutter {
+    grid-column: 1;
+  }
+
+  .track > .column {
+    grid-column: 2;
+  }
+
+  .track > .column.wide {
+    grid-column: 2 / -1;
+    max-width: none;
+  }
+}
+
+/* --- Site header: the chip and the places, then the tools at the row's end ----------------- */
+
+/* The interface's frame around the page: mono, quiet, and set off from the content by one rule.
+   It spans the page frame rather than the reading measure. Wide: one row, the chip and the three
+   places on the left, search, the switcher, and the theme toggle on the right. Narrow: the chip
+   and the tools share the first row, wrapping as they must, and the places take their own row. */
+.site-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-line-quarter) var(--space-cell-3);
+  padding-bottom: var(--space-line-half);
+  border-bottom: var(--size-rule) solid var(--theme-rule);
+  font-family: var(--type-family-ui);
+  font-size: var(--type-size-ui);
+  line-height: var(--type-leading-body);
+}
+
+.site-header + [data-sample-notice] {
+  margin-top: var(--space-line-half);
+}
+
+.site-nav {
+  order: 3;
+  flex-basis: 100%;
+}
+
+.site-nav ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--space-cell-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Where the reader is: the text color and the accent bar under it, as the current topic filter
+   and the chosen figure view show it. High contrast keeps the underline every link has there. */
+.site-nav a[aria-current] {
+  border-bottom: var(--size-bar) solid var(--theme-accent);
+  color: var(--theme-text);
+  text-decoration: none;
+}
+
+:root[data-contrast="high"] .site-nav a[aria-current] {
+  text-decoration: underline;
+  text-decoration-thickness: var(--theme-underline-width);
+  text-underline-offset: var(--size-underline-offset);
+}
+
+@media (prefers-contrast: more) {
+  :root:not([data-contrast]) .site-nav a[aria-current] {
+    text-decoration: underline;
+    text-decoration-thickness: var(--theme-underline-width);
+    text-underline-offset: var(--size-underline-offset);
+  }
+}
+
+.site-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 var(--space-cell-3);
+  margin-inline-start: auto;
+}
+
+@media (min-width: 56rem) {
+  .site-nav {
+    order: 0;
+    flex-basis: auto;
+  }
+}
+
+/* The theme toggle reads as a key: value line, the key muted and the choice in the link color,
+   quiet like the search button: no frame, no icon. */
+.theme-toggle {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--theme-link);
+  font-family: var(--type-family-ui);
+  font-size: var(--type-size-ui);
+  font-weight: var(--type-weight-text);
+  line-height: var(--type-leading-body);
+  cursor: pointer;
+}
+
+.theme-toggle[hidden] {
+  display: none;
+}
+
+.theme-toggle .key {
+  color: var(--theme-muted);
+}
+
+.theme-toggle .key::after {
+  content: ":";
+}
+
+.theme-toggle:hover .value {
+  text-decoration: underline;
+  text-decoration-color: var(--theme-underline);
+  text-decoration-thickness: var(--theme-underline-width);
+  text-underline-offset: var(--size-underline-offset);
+}
+
+/* --- Site footer: key: value lines, the keys in one column --------------------------------- */
+
+/* The profiles and the license share one grid, so their keys line up as the metadata's keys do.
+   The profiles are links separated by space, as tags are. */
+.site-footer {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  column-gap: var(--space-cell-2);
+  row-gap: var(--space-line-quarter);
+  margin-top: var(--space-line-2);
+  padding-top: var(--space-line-half);
+  border-top: var(--size-rule) solid var(--theme-rule);
+  font-family: var(--type-family-ui);
+  font-size: var(--type-size-ui);
+  line-height: var(--type-leading-ui);
+}
+
+.site-footer > .metadata,
+.site-footer > .metadata > div {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
+  row-gap: var(--space-line-quarter);
+  margin: 0;
+}
+
+.site-footer dd a + a {
+  margin-inline-start: var(--space-cell-2);
+}
+
+/* --- Title chip: the one filled block ----------------------------------------------------- */
+
+.chip {
+  display: inline-block;
+  padding: 0 var(--space-cell-1);
+  background: var(--theme-chip);
+  color: var(--theme-on-chip);
+  font-family: var(--type-family-ui);
+  font-size: var(--type-size-ui);
+  font-weight: var(--type-weight-strong);
+  line-height: var(--type-leading-body);
+  text-decoration: none;
+}
+
+.chip:hover {
+  text-decoration: underline;
+  text-decoration-color: currentColor;
+}
+
+/* Quiet links (the chip, list titles) drop the underline until hovered. High contrast
+   underlines every link, so it puts theirs back. */
+.quiet-link {
+  color: var(--theme-text);
+  text-decoration: none;
+}
+
+.quiet-link:hover {
+  text-decoration: underline;
+  text-decoration-color: var(--theme-underline);
+}
+
+:root[data-contrast="high"] .chip,
+:root[data-contrast="high"] .quiet-link {
+  text-decoration: underline;
+  text-decoration-thickness: var(--theme-underline-width);
+  text-underline-offset: var(--size-underline-offset);
+}
+
+@media (prefers-contrast: more) {
+  :root:not([data-contrast]) .chip,
+  :root:not([data-contrast]) .quiet-link {
+    text-decoration: underline;
+    text-decoration-thickness: var(--theme-underline-width);
+    text-underline-offset: var(--size-underline-offset);
+  }
+}
+
+/* --- Key hints: square 1px caps, lowercase labels, space between --------------------------- */
+
+.key-hints {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-line-quarter) var(--space-cell-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-family: var(--type-family-ui);
+  font-size: var(--type-size-ui);
+  line-height: var(--type-leading-body);
+}
+
+.key-hints li {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-cell-half);
+}
+
+kbd {
+  display: inline-block;
+  min-width: var(--space-cell-3);
+  padding: 0 var(--space-cell-half);
+  border: var(--size-rule) solid var(--theme-muted);
+  background: var(--theme-raised);
+  color: var(--theme-text);
+  font-size: var(--type-size-small);
+  line-height: var(--type-leading-ui);
+  text-align: center;
+}
+
+/* --- Metadata: key: value lines ------------------------------------------------------------ */
+
+.metadata {
+  margin: 0 0 var(--space-line-1);
+  font-family: var(--type-family-ui);
+  font-size: var(--type-size-ui);
+  line-height: var(--type-leading-ui);
+}
+
+.metadata > div {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  column-gap: var(--space-cell-1);
+}
+
+dt,
+dd {
+  font-family: var(--type-family-ui);
+}
+
+.metadata dt {
+  color: var(--theme-muted);
+}
+
+.metadata dt::after {
+  content: ":";
+}
+
+.metadata dd {
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+/* In the gutter the keys line up in one column, as `ls -l` lines up its fields. */
+@media (min-width: 56rem) {
+  .gutter.metadata {
+    display: grid;
+    grid-template-columns: max-content minmax(0, 1fr);
+    column-gap: var(--space-cell-1);
+    align-content: start;
+    padding-top: var(--space-line-quarter);
+  }
+
+  .gutter.metadata > div {
+    display: contents;
+  }
+}
+
+/* --- Record rows: a dated list (About's roles and education) ------------------------------- */
+
+/* The years sit in one mono column, lined up across rows; the title follows in sans, the place
+   under it in muted text. */
+.record {
+  display: grid;
+  grid-template-columns: minmax(calc(var(--space-cell-8) + var(--space-cell-2)), max-content) minmax(0, 1fr);
+  column-gap: var(--space-cell-2);
+  row-gap: var(--space-line-half);
+  align-items: baseline;
+  padding: 0;
+  list-style: none;
+}
+
+.record > li {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
+  align-items: baseline;
+}
+
+.record-years {
+  color: var(--theme-muted);
+  font-family: var(--type-family-ui);
+  font-size: var(--type-size-ui);
+  font-variant-numeric: tabular-nums;
+}
+
+.record-title,
+.record-where {
+  display: block;
+}
+
+.record-where {
+  color: var(--theme-muted);
+}
+
+/* About's facts: the keys line up in one column, as in a post header's gutter. */
+.about-facts {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  column-gap: var(--space-cell-1);
+  margin-bottom: var(--space-line-1);
+}
+
+.about-facts > div {
+  display: contents;
+}
+
+/* --- Prompt-style headings: a quiet ## inside the text ------------------------------------- */
+
+.prose h2::before,
+.prose h3::before {
+  color: var(--theme-muted);
+  font-family: var(--type-family-ui);
+  font-weight: var(--type-weight-text);
+}
+
+.prose h2::before {
+  content: "## " / "";
+}
+
+.prose h3::before {
+  content: "### " / "";
+}
+
+.prose > :first-child {
+  margin-top: 0;
+}
+
+/* With a gutter to hang into, the marks sit in the margin and the heading aligns with the text. */
+@media (min-width: 56rem) {
+  .prose h2,
+  .prose h3 {
+    position: relative;
+  }
+
+  .prose h2::before,
+  .prose h3::before {
+    position: absolute;
+    right: 100%;
+    white-space: pre;
+  }
+}
+
+/* --- The ls -l list: mono columns, the title hanging in sans -------------------------------- */
+
+.ls {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  margin: 0 0 var(--space-line-1);
+  padding: 0;
+  list-style: none;
+}
+
+.ls > li {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
+  align-items: baseline;
+  margin-inline-start: calc((var(--size-bar) + var(--space-cell-1)) * -1);
+  padding: var(--space-line-quarter) 0 var(--space-line-quarter) var(--space-cell-1);
+  border-inline-start: var(--size-bar) solid transparent;
+}
+
+.ls > li:hover,
+.ls > li:focus-within {
+  border-inline-start-color: var(--theme-accent);
+}
+
+.ls time,
+.ls-years {
+  font-family: var(--type-family-ui);
+  font-size: var(--type-size-ui);
+  line-height: var(--type-leading-body);
+  white-space: nowrap;
+}
+
+/* Narrow: the date on its line, the title and its quiet line below it. From 40rem, two columns:
+   the date, then the title with its line hanging under it (spec 010: no kind, no codes). */
+@media (min-width: 40rem) {
+  .ls {
+    grid-template-columns: max-content minmax(0, 1fr);
+    column-gap: var(--space-cell-2);
+  }
+}
+
+/* A row's quiet line: its topics, then, for a piece in one language, that language's name, set
+   a little apart. */
+.ls-meta {
+  margin: 0;
+  color: var(--theme-muted);
+  font-family: var(--type-family-ui);
+  font-size: var(--type-size-ui);
+  line-height: var(--type-leading-ui);
+}
+
+.ls-lang {
+  margin-inline-start: var(--space-cell-1);
+}
+
+.ls-topics + .ls-lang::before {
+  content: "/ " / "";
+}
+
+@media (min-width: 40rem) {
+  .ls-meta {
+    grid-column: 2;
+  }
+}
+
+/* The list's key hints, quiet under the list; touch has no such keys. */
+.list-keys {
+  color: var(--theme-muted);
+}
+
+@media (hover: none) {
+  .list-keys {
+    display: none;
+  }
+}
+
+/* A project's years stand in the date column, in tabular figures so they line up with dates. */
+.ls-years {
+  font-variant-numeric: tabular-nums;
+}
+
+.ls-empty {
+  color: var(--theme-muted);
+}
+
+/* --- Projects (spec 011): the project page and the cards of the projects list ---------------- */
+
+/* The page: the summary is a standfirst, set apart by size, not color; the image sits in a 1px
+   frame; the links are key: value lines under a quiet heading. */
+.project-summary {
+  margin: 0 0 var(--space-line-1);
+  font-size: var(--type-size-h3);
+  line-height: var(--type-leading-heading);
+}
+
+.project-figure {
+  margin: 0 0 var(--space-line-1);
+  border: var(--size-rule) solid var(--theme-rule);
+}
+
+.project-image,
+.project-card-image {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.project-links-heading {
+  margin: var(--space-line-1) 0 var(--space-line-quarter);
+  color: var(--theme-muted);
+  font-family: var(--type-family-ui);
+  font-size: var(--type-size-ui);
+  font-weight: var(--type-weight-text);
+  line-height: var(--type-leading-ui);
+}
+
+/* The links' keys line up in one column, as in the gutter. */
+.project-links {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  column-gap: var(--space-cell-1);
+}
+
+.project-links > div {
+  display: contents;
+}
+
+.project-links dd {
+  white-space: normal;
+}
+
+/* The list: cards in a grid as wide as the page frame, each a 1px frame with no fill and no
+   shadow. The years come first, as ls -l puts the date first; the title is the card's one link,
+   stretched over it; hover or focus draws the list's accent bar on the card's left edge. */
+.projects > .project-cards {
+  max-width: none;
+}
+
+.project-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr));
+  gap: var(--space-line-1) var(--space-cell-2);
+  margin: var(--space-line-1) 0;
+  padding: 0;
+  list-style: none;
+}
+
+.project-card {
+  display: flex;
+}
+
+.project-card article {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  padding-bottom: var(--space-line-half);
+  border: var(--size-rule) solid var(--theme-rule);
+  box-shadow: inset var(--size-bar) 0 0 transparent;
+}
+
+.project-card article:hover,
+.project-card article:focus-within {
+  box-shadow: inset var(--size-bar) 0 0 var(--theme-accent);
+}
+
+.project-card-image {
+  border-bottom: var(--size-rule) solid var(--theme-rule);
+}
+
+.project-card-years,
+.project-card-title,
+.project-card-summary {
+  margin: 0;
+  padding-inline: var(--space-cell-2);
+}
+
+.project-card-years {
+  order: 0;
+  padding-top: var(--space-line-half);
+  color: var(--theme-muted);
+  font-family: var(--type-family-ui);
+  font-size: var(--type-size-ui);
+  line-height: var(--type-leading-body);
+  font-variant-numeric: tabular-nums;
+}
+
+.project-card-title {
+  font-size: var(--type-size-h3);
+  line-height: var(--type-leading-heading);
+}
+
+.project-card-title a::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+
+.project-card-summary {
+  margin-top: var(--space-line-quarter);
+  color: var(--theme-muted);
+}
+
+/* --- Tags: a key: value line of links -------------------------------------------------------- */
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 var(--space-cell-1);
+  margin: 0 0 var(--space-line-1);
+  font-family: var(--type-family-ui);
+  font-size: var(--type-size-ui);
+  line-height: var(--type-leading-body);
+}
+
+.tags > .key {
+  color: var(--theme-muted);
+}
+
+.tags > .key::after {
+  content: ":";
+}
+
+.tags ul {
+  display: contents;
+  list-style: none;
+}
+
+.tags li {
+  margin-inline-end: var(--space-cell-1);
+}
+
+/* The topic filters (home and the topic views) are a tags line. The current one takes the text
+   color and the accent bar under it, as a chosen figure view does; high contrast keeps the
+   underline every link has there. */
+.topic-filters a[aria-current="page"] {
+  border-bottom: var(--size-bar) solid var(--theme-accent);
+  color: var(--theme-text);
+  text-decoration: none;
+}
+
+:root[data-contrast="high"] .topic-filters a[aria-current="page"] {
+  text-decoration: underline;
+  text-decoration-thickness: var(--theme-underline-width);
+  text-underline-offset: var(--size-underline-offset);
+}
+
+@media (prefers-contrast: more) {
+  :root:not([data-contrast]) .topic-filters a[aria-current="page"] {
+    text-decoration: underline;
+    text-decoration-thickness: var(--theme-underline-width);
+    text-underline-offset: var(--size-underline-offset);
+  }
+}
+
+/* --- Figure block: chart, table, sources, download ------------------------------------------- */
+
+.figure-block {
+  margin: 0 0 var(--space-line-1);
+}
+
+/* A table wider than the column scrolls inside its own panel, never the page. */
+.figure-panel[data-panel="table"] {
+  overflow-x: auto;
+}
+
+.figure-title {
+  margin: 0 0 var(--space-line-quarter);
+  font-weight: var(--type-weight-strong);
+}
+
+.figure-views {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--space-cell-2);
+  margin-bottom: var(--space-line-half);
+  border-bottom: var(--size-rule) solid var(--theme-rule);
+}
+
+.figure-views a,
+.figure-views a + a {
+  margin-inline-start: 0;
+  font-family: var(--type-family-ui);
+  font-size: var(--type-size-ui);
+  line-height: var(--type-leading-body);
+}
+
+/* As tabs, the chosen view takes the text color and the accent bar under it. */
+[data-tabbed] .figure-views a {
+  margin-bottom: calc(var(--size-rule) * -1);
+  border-bottom: var(--size-bar) solid transparent;
+  color: var(--theme-muted);
+  text-decoration: none;
+}
+
+[data-tabbed] .figure-views a[aria-selected="true"] {
+  border-bottom-color: var(--theme-accent);
+  color: var(--theme-text);
+}
+
+[data-tabbed] .figure-views a:hover {
+  color: var(--theme-text);
+}
+
+:root[data-contrast="high"] [data-tabbed] .figure-views a {
+  text-decoration: underline;
+  text-decoration-thickness: var(--theme-underline-width);
+  text-underline-offset: var(--size-underline-offset);
+}
+
+.figure-panel {
+  margin-bottom: var(--space-line-1);
+}
+
+.figure-panel[hidden] {
+  display: none;
+}
+
+.panel-heading {
+  margin: 0 0 var(--space-line-quarter);
+  color: var(--theme-muted);
+  font-family: var(--type-family-ui);
+  font-size: var(--type-size-ui);
+  font-weight: var(--type-weight-text);
+  line-height: var(--type-leading-body);
+}
+
+/* With tabs, the tab names the panel. */
+[data-tabbed] .panel-heading {
+  position: absolute;
+  width: var(--size-rule);
+  height: var(--size-rule);
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.figure-paper {
+  padding: var(--space-line-half) var(--space-cell-2);
+  border: var(--size-rule) solid var(--theme-rule);
+}
+
+/* A page's figure is named in the interface voice; it has no title of its own. The name is
+   the figure's heading, an h2, set as a label like the piece's block labels. */
+.figure-label {
+  margin: 0 0 var(--space-line-quarter);
+  color: var(--theme-muted);
+  font-family: var(--type-family-ui);
+  font-size: var(--type-size-ui);
+  font-weight: var(--type-weight-text);
+  line-height: var(--type-leading-body);
+}
+
+/* The fallback note covers the whole block: image, table, and files are the other language's.
+   Its label always runs in, since the block already fills the column. */
+.figure-note {
+  margin: 0 0 var(--space-line-half);
+}
+
+.figure-note .callout-label {
+  position: static;
+  margin: 0;
+}
+
+/* The PNG is the LinkedIn canvas, with its own margins and its own paper: it fills the frame
+   edge to edge, and a tall canvas stops at about one screen, held to the left with paper beside it. */
+.figure-paper[data-image] {
+  padding: 0;
+}
+
+.figure-paper img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 85vh;
+  object-fit: contain;
+  object-position: left top;
+}
+
+.figure-paper svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  color: var(--theme-accent);
+}
+
+.figure-paper line {
+  stroke: var(--theme-muted);
+}
+
+/* The interactive view (the chart gallery's, and a figure's when its option draws): the chart fills
+   its frame, a 1px rule on paper. */
+.interactive-frame {
+  border: var(--size-rule) solid var(--theme-rule);
+}
+
+.interactive-frame .chart {
+  width: 100%;
+}
+
+/* On a dark page the interactive chart follows the page (DECISIONS/012): its frame takes the dark
+   chart surface and grid of the page's contrast level. The static canvases keep their paper. */
+:root[data-theme="dark"] .interactive-frame {
+  border-color: var(--chart-ink-dark-standard-grid);
+  background: var(--chart-surface-dark-standard);
+  color: var(--chart-ink-dark-standard-text);
+}
+
+:root[data-theme="dark"][data-contrast="high"] .interactive-frame {
+  border-color: var(--chart-ink-dark-high-grid);
+  background: var(--chart-surface-dark-high);
+  color: var(--chart-ink-dark-high-text);
+}
+
+.figure-sources,
+.figure-downloads {
+  margin: 0;
+}
+
+/* A wide figure's words keep the measure; only the chart and the table take the width. */
+.figure-note,
+.figure-sources {
+  max-width: var(--size-measure);
+}
+
+.figure-downloads {
+  padding: 0;
+  list-style: none;
+  font-family: var(--type-family-ui);
+  font-size: var(--type-size-ui);
+}
+
+.figure-downloads .file {
+  color: var(--theme-muted);
+}
+
+td data,
+th data {
+  font-variant-numeric: tabular-nums;
+}
+
+td:has(data) {
+  text-align: end;
+}
+
+/* --- Code ------------------------------------------------------------------------------------ */
+
+.code-label {
+  margin: 0;
+  color: var(--theme-muted);
+  font-family: var(--type-family-ui);
+  font-size: var(--type-size-ui);
+  line-height: var(--type-leading-body);
+}
+
+/* --- Callouts: a label, then plain text ------------------------------------------------------ */
+
+.callout {
+  margin: 0 0 var(--space-line-1);
+}
+
+.callout p {
+  margin: 0;
+}
+
+.callout-label {
+  color: var(--theme-muted);
+  font-family: var(--type-family-ui);
+  font-size: var(--type-size-ui);
+}
+
+.callout-label::after {
+  content: ":";
+}
+
+@media (min-width: 56rem) {
+  .callout {
+    position: relative;
+  }
+
+  .callout-label {
+    position: absolute;
+    right: 100%;
+    margin-right: var(--space-cell-4);
+    line-height: var(--type-leading-body);
+    white-space: nowrap;
+  }
+}
+
+/* --- Command palette shell ------------------------------------------------------------------- */
+
+.palette {
+  margin: 0 0 var(--space-line-1);
+  border: var(--size-rule) solid var(--theme-rule);
+  background: var(--theme-surface);
+}
+
+.palette-input {
+  display: flex;
+  align-items: center;
+  gap: var(--space-cell-1);
+  padding: var(--space-line-quarter) var(--space-cell-2);
+  border-bottom: var(--size-rule) solid var(--theme-rule);
+}
+
+.palette input {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  padding: var(--space-line-quarter) 0;
+  border: 0;
+  background: transparent;
+  color: var(--theme-text);
+  font-family: var(--type-family-ui);
+  font-size: var(--type-size-body);
+}
+
+.palette input::placeholder {
+  color: var(--theme-muted);
+  opacity: 1;
+}
+
+.palette-results {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  column-gap: var(--space-cell-2);
+  margin: 0;
+  padding: var(--space-line-quarter) 0;
+  list-style: none;
+}
+
+.palette-results li {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
+  align-items: baseline;
+  padding: var(--space-line-quarter) var(--space-cell-2) var(--space-line-quarter) var(--space-cell-1);
+  border-inline-start: var(--size-bar) solid transparent;
+}
+
+.palette-results li[aria-current="true"] {
+  border-inline-start-color: var(--theme-accent);
+  background: var(--theme-raised);
+}
+
+@media (min-width: 40rem) {
+  .palette-results {
+    grid-template-columns: max-content minmax(0, 1fr);
+  }
+}
+
+.palette-results .ls-kind {
+  color: var(--theme-muted);
+  font-family: var(--type-family-ui);
+  font-size: var(--type-size-ui);
+}
+
+.palette .key-hints {
+  padding: var(--space-line-quarter) var(--space-cell-2);
+  border-top: var(--size-rule) solid var(--theme-rule);
+  color: var(--theme-muted);
+}
+
+.palette .key-hints span {
+  color: var(--theme-muted);
+}
+
+/* --- The command palette (spec 006): the shell in a modal dialog --------------------------- */
+
+/* It opens at the page frame's left edge, never centred, as terminal output starts at the left:
+   one line down and two cells in on narrow screens, two lines and six cells from the wide
+   breakpoint. No shadow: the page recedes behind a scrim of its own surface. */
+.palette-dialog {
+  position: fixed;
+  inset: var(--space-line-1) auto auto var(--space-cell-2);
+  width: min(var(--size-measure), calc(100vw - 2 * var(--space-cell-2)));
+  max-width: none;
+  max-height: calc(100dvh - 2 * var(--space-line-1));
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--theme-text);
+  overflow: visible;
+}
+
+.palette-dialog[open] {
+  display: flex;
+  animation: palette-in var(--motion-duration-quick) var(--motion-easing-standard);
+}
+
+.palette-dialog::backdrop {
+  background: color-mix(in srgb, var(--theme-surface) 85%, transparent);
+}
+
+@keyframes palette-in {
+  from { opacity: 0; }
+}
+
+@media (min-width: 56rem) {
+  .palette-dialog {
+    inset: var(--space-line-2) auto auto var(--space-cell-6);
+    width: min(var(--size-measure), calc(100vw - 2 * var(--space-cell-6)));
+  }
+}
+
+/* The input and the key hints stay put; the rows scroll between them. */
+.palette-dialog .palette {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-height: 0;
+  margin: 0;
+}
+
+.palette-dialog .palette-results {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.palette-dialog .palette-input:focus-within {
+  outline: var(--theme-focus-width) solid var(--theme-focus);
+  outline-offset: calc(-1 * var(--theme-focus-width));
+}
+
+.palette-dialog .palette-input input:focus {
+  outline: none;
+}
+
+.palette-status {
+  margin: 0;
+  padding: var(--space-line-quarter) var(--space-cell-2) 0 calc(var(--space-cell-1) + var(--size-bar));
+  color: var(--theme-muted);
+  font-family: var(--type-family-ui);
+  font-size: var(--type-size-ui);
+}
+
+/* Each row is a link or a button with the option role. The input keeps focus; the selected row
+   takes the accent bar and raised, as the shell's current row does. */
+.palette-results li {
+  padding: 0;
+  border: 0;
+}
+
+.palette-results li[hidden] {
+  display: none;
+}
+
+.palette-results [role="option"] {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
+  align-items: baseline;
+  width: 100%;
+  margin: 0;
+  padding: var(--space-line-quarter) var(--space-cell-2) var(--space-line-quarter) var(--space-cell-1);
+  border: 0;
+  border-inline-start: var(--size-bar) solid transparent;
+  background: transparent;
+  color: var(--theme-text);
+  font-family: var(--type-family-reading);
+  font-size: var(--type-size-body);
+  font-weight: var(--type-weight-text);
+  line-height: var(--type-leading-body);
+  text-align: start;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.palette-results [role="option"][aria-selected="true"] {
+  border-inline-start-color: var(--theme-accent);
+  background: var(--theme-raised);
+}
+
+.palette-results [role="option"]:hover .palette-title,
+.palette-results [role="option"]:hover .palette-command {
+  text-decoration: underline;
+  text-decoration-color: var(--theme-underline);
+  text-decoration-thickness: var(--theme-underline-width);
+  text-underline-offset: var(--size-underline-offset);
+}
+
+/* A command's words are the interface's, so they are mono; a piece's title is the author's. */
+.palette-command {
+  font-family: var(--type-family-ui);
+  font-size: var(--type-size-ui);
+}
+
+.palette-current {
+  display: none;
+  margin-inline-start: var(--space-cell-1);
+  color: var(--theme-muted);
+}
+
+[aria-checked="true"] .palette-current {
+  display: inline;
+}
+
+/* --- Buttons that open the palette: the header's, and the 404 page's ----------------------- */
+
+/* The header's is quiet, a key cap and a word, so the header's row still fits at 320px. */
+.site-search {
+  padding: 0;
+  border: 0;
+  color: var(--theme-link);
+  line-height: var(--type-leading-body);
+}
+
+.site-search:hover span {
+  text-decoration: underline;
+  text-decoration-color: var(--theme-underline);
+  text-decoration-thickness: var(--theme-underline-width);
+  text-underline-offset: var(--size-underline-offset);
+}
+
+.not-found-search button {
+  padding-block: var(--space-line-quarter);
+  text-align: start;
+}
+
+/* --- The post and note page: one track, the metadata in the gutter beside the title ---------- */
+
+/* Wide: the metadata spans the title's row and the text's, so it sits beside the title and stays
+   clear of the figures and blocks below. Narrow: it folds between the title and the text. */
+@media (min-width: 56rem) {
+  .piece > .piece-meta {
+    grid-row: 1 / span 2;
+    align-self: start;
+    margin-top: var(--space-line-2);
+  }
+
+  /* Values break between words only: the longest topic word, twelve cells, sits a hair past the
+     value column into the gap rather than splitting mid-word. */
+  .piece > .piece-meta dd {
+    overflow-wrap: normal;
+  }
+}
+
+.piece-license {
+  margin-top: var(--space-line-2);
+}
+
+/* Images in a note's text: the image at the column's width inside a hairline, as a project's image
+   sits, and its caption below in the interface voice (base.css, figcaption). */
+.text-figure img {
+  display: block;
+  width: 100%;
+  border: var(--size-rule) solid var(--theme-rule);
+}
+
+.text-figure figcaption {
+  margin-top: var(--space-line-quarter);
+}
+
+/* A post led by an image (spec 019): the image takes the chart's place, after the text in the
+   wide track. It shows at its own size, never upscaled, held left and to about one screen tall
+   as a tall chart canvas is, with the hairline hugging the image rather than empty space. It
+   brings its own ground, so it sits on no paper. */
+.piece-image img {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  height: auto;
+  max-height: 85vh;
+  border: var(--size-rule) solid var(--theme-rule);
+}
+
+/* Footnotes: the author's text one step down, set apart by space rather than a rule. The numbers
+   are interface, in muted mono; on wide screens they hang into the margin, as the ## marks do. */
+.prose sup {
+  font-family: var(--type-family-ui);
+  font-size: var(--type-size-small);
+  line-height: 0;
+}
+
+.prose .footnotes {
+  margin-top: var(--space-line-2);
+  font-size: var(--type-size-ui);
+  line-height: var(--type-leading-ui);
+}
+
+.prose .footnotes hr {
+  display: none;
+}
+
+.prose .footnotes ol {
+  padding-inline-start: var(--space-cell-3);
+}
+
+.prose .footnotes li::marker {
+  color: var(--theme-muted);
+  font-family: var(--type-family-ui);
+}
+
+.prose .footnotes p {
+  margin-bottom: var(--space-line-half);
+}
+
+.footnote-backref {
+  font-family: var(--type-family-ui);
+}
+
+@media (min-width: 56rem) {
+  .prose .footnotes ol {
+    padding-inline-start: 0;
+  }
+}
+
+/* --- Method, reproduce, and cite: the piece's apparatus, after its figures -------------------- */
+
+/* Space, not a rule, sets the apparatus off from the text and each block from the next. */
+.piece-block {
+  margin-top: var(--space-line-2);
+}
+
+.piece-block + .piece-block {
+  margin-top: var(--space-line-1);
+}
+
+/* The block's name is a label, as a callout's is: muted mono, the colon from CSS. It sits above
+   the block on narrow screens and hangs into the gutter on wide ones. */
+.block-label {
+  margin: 0 0 var(--space-line-quarter);
+  color: var(--theme-muted);
+  font-family: var(--type-family-ui);
+  font-size: var(--type-size-ui);
+  font-weight: var(--type-weight-text);
+  line-height: var(--type-leading-body);
+}
+
+.block-label::after {
+  content: ":";
+}
+
+@media (min-width: 56rem) {
+  .piece-block {
+    position: relative;
+  }
+
+  .block-label {
+    position: absolute;
+    top: 0;
+    right: 100%;
+    margin: 0 var(--space-cell-4) 0 0;
+    white-space: nowrap;
+  }
+}
+
+.piece-method {
+  margin: 0;
+}
+
+/* One key column across every dataset, as ls -l lines up its fields; a second dataset and the
+   code version start half a line down. */
+.reproduce-lines {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  column-gap: var(--space-cell-1);
+  margin-bottom: var(--space-line-half);
+}
+
+.reproduce-lines > div {
+  display: contents;
+}
+
+.reproduce-lines > .group-start > * {
+  margin-top: var(--space-line-half);
+}
+
+/* Long URLs and digests wrap inside their value; the digest breaks only between its groups
+   of eight (the <wbr>s), so it stays one token to copy. */
+.breakable {
+  overflow-wrap: anywhere;
+}
+
+.reproduce-lines .digest {
+  white-space: normal;
+  overflow-wrap: normal;
+}
+
+.cite-plain {
+  margin: 0 0 var(--space-line-half);
+  font-family: var(--type-family-ui);
+  font-size: var(--type-size-ui);
+  line-height: var(--type-leading-ui);
+}
+
+/* The command and the BibTeX wrap rather than scroll, so a narrow screen shows all of them;
+   each BibTeX field hangs, so a wrapped value continues under itself. Copied text is unchanged. */
+pre.wrapping {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+pre.bibtex .bib-line {
+  display: block;
+  padding-inline-start: 4ch;
+  text-indent: -4ch;
+}
+
+/* --- Hero band: home's name, sentence, bio, and profiles (spec 010, spec 016, DECISIONS/015) - */
+
+/* On home the band spans the window: it reaches out past the frame by --hero-pad on each side and
+   pads its content back, so its text keeps the page's left edge and the measure, ragged right.
+   --hero-pad is the distance from the window's edge to the frame's content (the frame's margin
+   plus its gutter), in cqw of the body, so the band is the window's width without the scrollbar.
+   The light is the live visual's (see Live visual): the band itself is the surface. It is a
+   stacking context, so the light paints over the band and under its text. */
+body {
+  container-type: inline-size;
+}
+
+.hero {
+  --hero-pad: 0px;
+  isolation: isolate;
+  margin: var(--space-line-1) 0 var(--space-line-2);
+  padding: var(--space-line-2) var(--hero-pad) var(--space-line-3);
+}
+
+main > .hero {
+  --hero-pad: calc((100cqw - min(100cqw, var(--size-page))) / 2 + var(--space-cell-2));
+  max-width: none;
+  margin-inline: calc(-1 * var(--hero-pad));
+}
+
+.hero > * {
+  max-width: var(--size-measure);
+}
+
+.hero-name {
+  margin: 0 0 var(--space-line-half);
+  font-size: var(--type-size-title);
+  line-height: var(--type-leading-title);
+}
+
+.hero-line {
+  margin: 0 0 var(--space-line-1);
+  font-size: var(--type-size-h2);
+  line-height: var(--type-leading-heading);
+  text-wrap: pretty;
+}
+
+.hero-bio,
+.hero-profiles {
+  margin: 0;
+  font-family: var(--type-family-ui);
+  font-size: var(--type-size-ui);
+  line-height: var(--type-leading-ui);
+}
+
+.hero-bio {
+  color: var(--theme-muted);
+  /* About 105 characters wrap to two lines inside the measure; balancing keeps them even. */
+  text-wrap: balance;
+}
+
+.hero-profiles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--space-cell-3);
+  padding: 0;
+  list-style: none;
+}
+
+@media (min-width: 56rem) {
+  .hero {
+    padding-block: var(--space-line-3);
+  }
+
+  main > .hero {
+    --hero-pad: calc((100cqw - min(100cqw, var(--size-page))) / 2 + var(--space-cell-6));
+  }
+
+  .hero-name {
+    font-size: var(--type-size-display);
+    line-height: var(--type-leading-display);
+  }
+
+  .hero-line {
+    font-size: var(--type-size-h1);
+    line-height: var(--type-leading-title);
+  }
+}
+
+/* --- Live visual: the dot plot of the site's content, in the hero (spec 010, #152) ----------- */
+
+/* On narrow screens it takes the band's floor under the text. From the wide breakpoint the band
+   is two columns, the text in the measure and the visual beside it. */
+.hero > .live {
+  max-width: none;
+  margin-top: var(--space-line-2);
+}
+
+/* The hero's light, the site's one gradient: a single source, the theme's glow, behind the dots.
+   Its box runs from the visual's left to the band's right edge and a line band above and below
+   it, all inside the band; the ellipse meets the nearest side of that box in each direction and
+   ends there in transparent, so no edge of the light shows anywhere. The core sits right of the
+   row names, where only marks are, and falls off fast: by the names, the years, and the hero's
+   text it is faint enough that every text keeps its contrast floor, so the chart's text needs no
+   halo. */
+.hero > .live::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: calc(-1 * var(--space-line-2)) calc(-1 * var(--hero-pad)) calc(-1 * var(--space-line-3)) 0;
+  background: radial-gradient(
+    in oklab ellipse closest-side at var(--light-x, 78%) 45%,
+    color-mix(in oklab, var(--theme-glow) calc(1 * var(--live-light)), transparent) 0%,
+    color-mix(in oklab, var(--theme-glow) calc(0.7 * var(--live-light)), transparent) 15%,
+    color-mix(in oklab, var(--theme-glow) calc(0.38 * var(--live-light)), transparent) 30%,
+    color-mix(in oklab, var(--theme-glow) calc(0.17 * var(--live-light)), transparent) 45%,
+    color-mix(in oklab, var(--theme-glow) calc(0.07 * var(--live-light)), transparent) 60%,
+    color-mix(in oklab, var(--theme-glow) calc(0.025 * var(--live-light)), transparent) 75%,
+    color-mix(in oklab, var(--theme-glow) calc(0.006 * var(--live-light)), transparent) 90%,
+    transparent
+  );
+  pointer-events: none;
+}
+
+@media (min-width: 56rem) {
+  .hero {
+    display: grid;
+    grid-template-columns: minmax(0, var(--size-measure)) minmax(0, 1fr);
+    column-gap: var(--space-cell-6);
+    align-content: start;
+  }
+
+  .hero > :not(.live) {
+    grid-column: 1;
+  }
+
+  .hero > .live {
+    grid-column: 2;
+    grid-row: 1 / span 4;
+    align-self: start;
+    margin-top: 0;
+  }
+
+  .hero > .live::before {
+    --light-x: 64%;
+    inset-block: calc(-1 * var(--space-line-3));
+  }
+}
+
+/* The chart set of the page's theme: chart.categorical by topic, and the chart's own ink. Without
+   JavaScript the system's preferences pick it, as they pick the page theme; with it, the theme
+   script's attributes do. */
+.live {
+  --live-1: var(--chart-categorical-standard-1);
+  --live-2: var(--chart-categorical-standard-2);
+  --live-3: var(--chart-categorical-standard-3);
+  --live-4: var(--chart-categorical-standard-4);
+  --live-5: var(--chart-categorical-standard-5);
+  --live-text: var(--chart-ink-standard-text);
+  --live-muted: var(--chart-ink-standard-muted);
+  --live-grid: var(--chart-ink-standard-grid);
+  --live-range: var(--chart-context-standard-range);
+  --live-light: 55%;
+  position: relative;
+}
+
+@media (prefers-contrast: more) {
+  :root:not([data-contrast]) .live {
+    --live-1: var(--chart-categorical-high-1);
+    --live-2: var(--chart-categorical-high-2);
+    --live-3: var(--chart-categorical-high-3);
+    --live-4: var(--chart-categorical-high-4);
+    --live-5: var(--chart-categorical-high-5);
+    --live-text: var(--chart-ink-high-text);
+    --live-muted: var(--chart-ink-high-muted);
+    --live-grid: var(--chart-ink-high-grid);
+    --live-range: var(--chart-context-high-range);
+  --live-light: 100%;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) .live {
+    --live-1: var(--chart-categorical-dark-standard-1);
+    --live-2: var(--chart-categorical-dark-standard-2);
+    --live-3: var(--chart-categorical-dark-standard-3);
+    --live-4: var(--chart-categorical-dark-standard-4);
+    --live-5: var(--chart-categorical-dark-standard-5);
+    --live-text: var(--chart-ink-dark-standard-text);
+    --live-muted: var(--chart-ink-dark-standard-muted);
+    --live-grid: var(--chart-ink-dark-standard-grid);
+    --live-range: var(--chart-context-dark-standard-range);
+  --live-light: 55%;
+  }
+}
+
+@media (prefers-color-scheme: dark) and (prefers-contrast: more) {
+  :root:not([data-theme]):not([data-contrast]) .live {
+    --live-1: var(--chart-categorical-dark-high-1);
+    --live-2: var(--chart-categorical-dark-high-2);
+    --live-3: var(--chart-categorical-dark-high-3);
+    --live-4: var(--chart-categorical-dark-high-4);
+    --live-5: var(--chart-categorical-dark-high-5);
+    --live-text: var(--chart-ink-dark-high-text);
+    --live-muted: var(--chart-ink-dark-high-muted);
+    --live-grid: var(--chart-ink-dark-high-grid);
+    --live-range: var(--chart-context-dark-high-range);
+  --live-light: 100%;
+  }
+}
+
+:root[data-theme="light"][data-contrast="high"] .live {
+  --live-1: var(--chart-categorical-high-1);
+  --live-2: var(--chart-categorical-high-2);
+  --live-3: var(--chart-categorical-high-3);
+  --live-4: var(--chart-categorical-high-4);
+  --live-5: var(--chart-categorical-high-5);
+  --live-text: var(--chart-ink-high-text);
+  --live-muted: var(--chart-ink-high-muted);
+  --live-grid: var(--chart-ink-high-grid);
+  --live-range: var(--chart-context-high-range);
+  --live-light: 100%;
+}
+
+:root[data-theme="dark"][data-contrast="standard"] .live {
+  --live-1: var(--chart-categorical-dark-standard-1);
+  --live-2: var(--chart-categorical-dark-standard-2);
+  --live-3: var(--chart-categorical-dark-standard-3);
+  --live-4: var(--chart-categorical-dark-standard-4);
+  --live-5: var(--chart-categorical-dark-standard-5);
+  --live-text: var(--chart-ink-dark-standard-text);
+  --live-muted: var(--chart-ink-dark-standard-muted);
+  --live-grid: var(--chart-ink-dark-standard-grid);
+  --live-range: var(--chart-context-dark-standard-range);
+  --live-light: 55%;
+}
+
+:root[data-theme="dark"][data-contrast="high"] .live {
+  --live-1: var(--chart-categorical-dark-high-1);
+  --live-2: var(--chart-categorical-dark-high-2);
+  --live-3: var(--chart-categorical-dark-high-3);
+  --live-4: var(--chart-categorical-dark-high-4);
+  --live-5: var(--chart-categorical-dark-high-5);
+  --live-text: var(--chart-ink-dark-high-text);
+  --live-muted: var(--chart-ink-dark-high-muted);
+  --live-grid: var(--chart-ink-dark-high-grid);
+  --live-range: var(--chart-context-dark-high-range);
+  --live-light: 100%;
+}
+
+.live-plot {
+  display: block;
+  overflow: visible;
+  font-family: var(--type-family-reading);
+  font-size: var(--type-size-ui);
+}
+
+/* The chart's text wears no halo: the light is faint wherever it sits (see the hero's light). */
+.live-topic {
+  fill: var(--live-text);
+}
+
+.live-year {
+  fill: var(--live-muted);
+}
+
+/* The current row (spec 016, #175). While the sentence and the visual are linked (hero.js, with
+   motion allowed), the row of the sentence's topic keeps its full ink and the others dim: their
+   marks to 40%, their names to the chart's muted ink, which keeps 4.5:1. Weight changes on the
+   word's spring duration, so the two places change together; nothing moves. The name answers the
+   pointer over its whole box, not only its glyphs. */
+.live-topic {
+  pointer-events: bounding-box;
+}
+
+.live[data-linked] .live-topic,
+.live[data-linked] .live-range,
+.live[data-linked] .live-anchor {
+  transition:
+    fill var(--motion-duration-spring) var(--motion-easing-standard),
+    opacity var(--motion-duration-spring) var(--motion-easing-standard);
+}
+
+.live[data-linked] .live-row:not([data-current]) .live-topic {
+  fill: var(--live-muted);
+}
+
+.live[data-linked] .live-row:not([data-current]) .live-range,
+.live[data-linked] .live-row:not([data-current]) .live-anchor {
+  opacity: 0.4;
+}
+
+.live-grid {
+  stroke: var(--live-grid);
+  stroke-width: var(--chart-mark-rule);
+}
+
+/* A project's years: the dot-and-range bar, in context gray. */
+.live-range {
+  stroke: var(--live-range);
+  stroke-width: 5px; /* the dot-and-range bar (DESIGN.md section 8, Marks) */
+}
+
+/* A mark: an HTML link in a foreignObject placed at the dot's centre, a 24px hit target around an
+   8px point (chart.mark.point) ringed 2px in the surface (chart.mark.ring): the ring is the outer
+   half of a 4px stroke painted under the fill. Hovered or focused, the ring takes the ink. */
+.live-anchor {
+  overflow: visible;
+}
+
+.live-mark {
+  display: block;
+  position: relative;
+  left: -12px;
+  top: -12px;
+  width: 24px;
+  height: 24px;
+}
+
+.live-shape {
+  display: block;
+  overflow: visible;
+}
+
+.live-dot {
+  stroke: var(--theme-surface);
+  stroke-width: calc(2 * var(--chart-mark-ring));
+  paint-order: stroke;
+}
+
+.live-mark[data-slot="1"] .live-dot { fill: var(--live-1); }
+.live-mark[data-slot="2"] .live-dot { fill: var(--live-2); }
+.live-mark[data-slot="3"] .live-dot { fill: var(--live-3); }
+.live-mark[data-slot="4"] .live-dot { fill: var(--live-4); }
+.live-mark[data-slot="5"] .live-dot { fill: var(--live-5); }
+
+.live-mark:hover .live-dot,
+.live-mark:focus-visible .live-dot,
+.live-mark.is-shown .live-dot {
+  stroke: var(--theme-text);
+}
+
+/* The marks spring into place, left to right, once (assets/js/live-visual.js sets the order);
+   a project's range draws out from its start alongside. */
+.live.is-springing .live-shape {
+  animation: live-arrive var(--motion-duration-spring) var(--motion-easing-spring) backwards;
+  animation-delay: calc(var(--live-order, 0) * 25ms);
+}
+
+.live.is-springing .live-range {
+  transform-box: fill-box;
+  transform-origin: left center;
+  animation: live-draw var(--motion-duration-spring) var(--motion-easing-standard) backwards;
+}
+
+@keyframes live-arrive {
+  from {
+    transform: scale(0);
+  }
+}
+
+@keyframes live-draw {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+/* The tooltip: the item's date or years in mono, its title in sans; square, a 1px rule. */
+.live-tip {
+  position: absolute;
+  z-index: 1;
+  max-width: 18rem;
+  padding: var(--space-line-quarter) var(--space-cell-1);
+  border: var(--size-rule) solid var(--theme-rule);
+  background: var(--theme-surface);
+  color: var(--theme-text);
+  font-size: var(--type-size-ui);
+  line-height: var(--type-leading-ui);
+  pointer-events: none;
+}
+
+.live-tip[hidden] {
+  display: none;
+}
+
+.live-when {
+  display: block;
+  color: var(--theme-muted);
+  font-family: var(--type-family-ui);
+}
+
+/* The rotating topic. Every word sits in one grid cell, so the line keeps the widest word's room
+   and nothing after it moves when the word changes. Without JavaScript, or with reduced motion,
+   the words after the first carry `hidden` and one topic shows. assets/js/hero.js marks the
+   resting words `aria-hidden` instead, and on each change the new word rises from below on the
+   spring while a copy of the old one (never a link) leaves upwards; the cell clips both while
+   they roll, and only then, so a focused word's ring is never cut. */
+.hero-rotor {
+  display: inline-grid;
+  vertical-align: bottom;
+}
+
+.hero-rotor > * {
+  grid-area: 1 / 1;
+}
+
+.hero-rotor > [aria-hidden="true"] {
+  visibility: hidden;
+}
+
+.hero-rotor.is-rolling {
+  overflow: clip;
+}
+
+.hero-rotor > .is-arriving {
+  animation: hero-arrive var(--motion-duration-spring) var(--motion-easing-spring);
+}
+
+.hero-rotor > .hero-ghost {
+  color: var(--theme-link);
+  text-decoration-line: underline;
+  text-decoration-color: var(--theme-underline);
+  text-decoration-thickness: var(--theme-underline-width);
+  text-underline-offset: var(--size-underline-offset);
+  visibility: visible;
+  animation: hero-leave var(--motion-duration-base) var(--motion-easing-standard) forwards;
+}
+
+@keyframes hero-arrive {
+  from {
+    transform: translateY(100%);
+  }
+}
+
+@keyframes hero-leave {
+  to {
+    transform: translateY(-100%);
+  }
+}
+
+/* --- Home's sections (spec 010, #153): featured items, projects, writing --------------------- */
+
+main > .home-section {
+  max-width: none;
+}
+
+.home-section {
+  margin-top: var(--space-line-3);
+}
+
+.home-section > h2 {
+  margin-top: 0;
+}
+
+.home-section > :not(.project-cards) {
+  max-width: var(--size-measure);
+}
+
+/* A featured card leads with its image in a 16:10 box. A chart PNG is shown whole on its paper
+   sheet (DECISIONS/004), never cropped; a cover or a project's image fills the box. */
+.card-image {
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  border-bottom: var(--size-rule) solid var(--theme-rule);
+}
+
+.card-image img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.card-chart img {
+  object-fit: contain;
+}
+
+/* A card's chart wipes in from the left the first time it is seen (assets/js/cards.js). */
+.card-chart.is-waiting img {
+  clip-path: inset(0 100% 0 0);
+}
+
+.card-chart.is-revealed img {
+  clip-path: inset(0 0 0 0);
+  transition: clip-path var(--motion-duration-spring) var(--motion-easing-standard);
+}

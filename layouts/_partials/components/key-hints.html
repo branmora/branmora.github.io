@@ -1,0 +1,7 @@
+{{- /* Key hints: square key caps, each followed by what the key does.
+Context: a list of dicts, "keys" (a list of key names) and "label". */ -}}
+<ul class="key-hints">
+  {{- range . }}
+  <li>{{ range .keys }}<kbd>{{ . }}</kbd>{{ end }} <span>{{ .label }}</span></li>
+  {{- end }}
+</ul>

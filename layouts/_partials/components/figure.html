@@ -1,0 +1,97 @@
+{{- /* The figure block shell: chart, table, sources, download. Without JavaScript every view
+shows, one after another, and the view links jump to them; components.js turns the links into
+tabs. The placeholder chart sits on the paper surface; spec 003 draws the real one, whose interactive
+view follows the page's theme (DECISIONS/012).
+Context: dict "id", "title", "alt", "values" (bar heights for the placeholder chart),
+"head" (table header), "rows" (table rows: a label and numbers), "digits", "suffix",
+"sources" (list of dicts: title, url), "downloads" (a page bundle with csv, png, json files, or nil).
+A page's figure passes instead: "label" (a mono name such as "figure 1", in place of "title",
+set as the h2 its panel headings sit under, so a piece's outline runs h1, h2, h3),
+"image" (dict src, width, height, alt: the PNG, drawn in place of the placeholder), "note"
+(text for the fallback note, when the chart is the other language's), and "files" (list of dicts
+kind, url: the downloads), and "option" (the ECharts option's URL, drawn as the interactive
+chart when JavaScript runs; needs "image"), and "map" (dict url, name: the boundary file and the map
+name an option's map series draws, handed to charts.js to register; empty for any other option). A row may also come as dict "cells". A table cell is a number dict (value, digits, suffix) or, with "text",
+a word. A source without a url is cited unlinked. */ -}}
+{{- $id := .id -}}
+{{- $views := slice "chart" "table" "sources" "download" -}}
+<figure class="figure-block" data-figure aria-labelledby="{{ $id }}-title"{{ with .map }} data-map="{{ .url }}" data-map-name="{{ .name }}"{{ end }}>
+  {{- with .label }}
+  <h2 class="figure-label" id="{{ $id }}-title">{{ . }}</h2>
+  {{- else }}
+  <p class="figure-title" id="{{ $id }}-title">{{ .title }}</p>
+  {{- end }}
+  {{- with .note }}
+  <p class="figure-note" data-fallback><span class="callout-label">{{ T "callout_note" }}</span> {{ . }}</p>
+  {{- end }}
+  <nav class="figure-views" aria-label="{{ T "figureViews" }}">
+    {{- range $views }}
+    <a href="#{{ $id }}-{{ . }}" data-view="{{ . }}">{{ T (printf "view_%s" .) }}</a>
+    {{- end }}
+  </nav>
+  <section class="figure-panel" data-panel="chart" id="{{ $id }}-chart" aria-labelledby="{{ $id }}-chart-h">
+    <h3 class="panel-heading" id="{{ $id }}-chart-h">{{ T "view_chart" }}</h3>
+    <div class="figure-paper" data-surface="paper"{{ with .image }} data-image{{ end }}>
+      {{- with .image }}
+      <img src="{{ .src }}" width="{{ .width }}" height="{{ .height }}" alt="{{ .alt }}" decoding="async">
+      {{- else }}
+      {{- $max := 0.0 }}{{ range .values }}{{ if gt (float .) $max }}{{ $max = float . }}{{ end }}{{ end }}
+      {{- $n := len .values }}
+      <svg viewBox="0 0 {{ mul $n 20 }} 36" role="img" aria-label="{{ .alt }}" focusable="false">
+        {{- range $i, $v := .values }}
+        {{- $h := mul (div (float $v) $max) 32 }}
+        <rect x="{{ add 3 (mul $i 20) }}" y="{{ sub 34 $h }}" width="14" height="{{ $h }}" fill="currentColor"/>
+        {{- end }}
+        <line x1="0" y1="34.25" x2="{{ mul $n 20 }}" y2="34.25" stroke="currentColor" stroke-width="0.25"/>
+      </svg>
+      {{- end }}
+    </div>
+    {{- with .option }}
+    {{- /* The interactive chart, drawn by assets/js/charts.js from the option's URL. It shows,
+       and the paper with the PNG gives way to it, only once the chart has drawn. */}}
+    <div class="interactive-frame figure-interactive" data-surface="paper" hidden>
+      <div class="chart" data-chart-option="{{ . }}" role="img" aria-label="{{ $.image.alt }}"></div>
+    </div>
+    {{- end }}
+  </section>
+  <section class="figure-panel" data-panel="table" id="{{ $id }}-table" aria-labelledby="{{ $id }}-table-h">
+    <h3 class="panel-heading" id="{{ $id }}-table-h">{{ T "view_table" }}</h3>
+    <table>
+      <thead><tr>{{ range .head }}<th scope="col">{{ . }}</th>{{ end }}</tr></thead>
+      <tbody>
+        {{- range .rows }}
+        {{- $row := . }}{{ if reflect.IsMap . }}{{ $row = .cells }}{{ end }}
+        <tr>
+          <th scope="row">{{ index $row 0 }}</th>
+          {{- range $j, $cell := after 1 $row }}
+          <td>{{ with $cell.text }}{{ . }}{{ else }}{{ partial "components/number.html" (dict "value" $cell.value "digits" $cell.digits "suffix" $cell.suffix) }}{{ end }}</td>
+          {{- end }}
+        </tr>
+        {{- end }}
+      </tbody>
+    </table>
+  </section>
+  <section class="figure-panel" data-panel="sources" id="{{ $id }}-sources" aria-labelledby="{{ $id }}-sources-h">
+    <h3 class="panel-heading" id="{{ $id }}-sources-h">{{ T "view_sources" }}</h3>
+    <ol class="figure-sources">
+      {{- range $source := .sources }}
+      <li>{{ with $source.url }}<a href="{{ . }}">{{ $source.title }}</a>{{ else }}{{ $source.title }}{{ end }}</li>
+      {{- end }}
+    </ol>
+  </section>
+  <section class="figure-panel" data-panel="download" id="{{ $id }}-download" aria-labelledby="{{ $id }}-download-h">
+    <h3 class="panel-heading" id="{{ $id }}-download-h">{{ T "view_download" }}</h3>
+    <ul class="figure-downloads">
+      {{- range .files }}
+      <li><a href="{{ .url }}" download>{{ T (printf "download_%s" .kind) }}</a> <span class="file">{{ path.Base .url }}</span></li>
+      {{- end }}
+      {{- with .downloads }}
+      {{- range $kind := slice "csv" "png" "json" }}
+      {{- with $.downloads.Resources.GetMatch (printf "*.%s.%s" $.downloads.Language.Lang $kind) }}
+      <li><a href="{{ .RelPermalink }}" download>{{ T (printf "download_%s" $kind) }}</a> <span class="file">{{ path.Base .RelPermalink }}</span></li>
+      {{- end }}
+      {{- end }}
+      {{- end }}
+    </ul>
+  </section>
+</figure>

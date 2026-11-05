@@ -1,0 +1,107 @@
+{{- /*
+Builds the four ECharts themes from tokens/base.tokens.json and tokens/chart.tokens.json and
+publishes them at /charts/echarts-theme-<level>.json, for the levels standard, high,
+dark-standard and dark-high. Returns their URLs as a dict keyed by level.
+Nothing generated is committed, so the themes cannot drift from the tokens.
+
+- Plain JSON with no functions, so a theme works in the browser and in server-side rendering.
+- Colors are hex, because ECharts parses no oklch() or color(). Each is the hex of a base token;
+  the translucent zoom fills reuse a token's channels.
+- Event lines (a line series' markLine) default to the annotation tokens, graphite and 1px.
+- standard and high are the light-paper themes: every static canvas uses them, and so does an
+  interactive chart on a light page. On a dark page an interactive chart uses dark-standard or
+  dark-high, by the page's contrast (DECISIONS/012). DESIGN.md, section 8, gives the reasons.
+*/ -}}
+{{- $base := os.ReadFile "tokens/base.tokens.json" | transform.Unmarshal -}}
+{{- $chart := os.ReadFile "tokens/chart.tokens.json" | transform.Unmarshal -}}
+{{- $t := dict -}}
+{{- range slice $base $chart -}}
+  {{- range partial "tokens/walk.html" (dict "node" . "path" slice "type" "") -}}
+    {{- $t = merge $t (dict (delimit .path ".") .value) -}}
+  {{- end -}}
+{{- end -}}
+
+{{- /* Sizes and type, the same at both contrast levels */ -}}
+{{- $px := dict -}}
+{{- range $name, $path := dict "label" "chart.interactive.text.label" "axis" "chart.interactive.text.axis" "title" "chart.interactive.text.title" "line" "chart.mark.line.highlight" "point" "chart.mark.point" "rule" "chart.mark.rule" -}}
+  {{- $px = merge $px (dict $name (index (partial "charts/resolve.html" (dict "table" $t "path" $path)) "value")) -}}
+{{- end -}}
+{{- $family := partial "charts/font.html" (dict "table" $t "path" "chart.font.text") -}}
+{{- $regular := partial "charts/resolve.html" (dict "table" $t "path" "chart.weight.text") -}}
+{{- $semibold := partial "charts/resolve.html" (dict "table" $t "path" "chart.weight.title") -}}
+
+{{- $urls := dict -}}
+{{- range $level := slice "standard" "high" "dark-standard" "dark-high" -}}
+  {{- $c := dict -}}
+  {{- $roles := dict
+    "surface" (printf "chart.surface.%s" $level)
+    "text" (printf "chart.ink.%s.text" $level)
+    "muted" (printf "chart.ink.%s.muted" $level)
+    "grid" (printf "chart.ink.%s.grid" $level)
+    "baseline" (printf "chart.ink.%s.baseline" $level)
+    "highlight" (printf "chart.highlight.%s.mark" $level)
+    "context" (printf "chart.context.%s.mark" $level)
+    "range" (printf "chart.context.%s.range" $level)
+    "event" (printf "chart.annotation.%s.line" $level)
+    "annotation" (printf "chart.annotation.%s.text" $level)
+  -}}
+  {{- range $role, $path := $roles -}}
+    {{- $c = merge $c (dict $role (partial "charts/hex.html" (dict "table" $t "path" $path))) -}}
+  {{- end -}}
+  {{- $categorical := slice -}}
+  {{- range seq 5 -}}
+    {{- $categorical = $categorical | append (partial "charts/hex.html" (dict "table" $t "path" (printf "chart.categorical.%s.%d" $level .))) -}}
+  {{- end -}}
+  {{- $sequential := slice -}}
+  {{- range seq 7 -}}
+    {{- $sequential = $sequential | append (partial "charts/hex.html" (dict "table" $t "path" (printf "chart.sequential.%s.%d" $level .))) -}}
+  {{- end -}}
+  {{- $selected := partial "charts/rgba.html" (dict "table" $t "path" (printf "chart.highlight.%s.mark" $level) "alpha" 0.15) -}}
+
+  {{- $axisLabel := dict "color" $c.muted "fontSize" $px.axis -}}
+  {{- $hidden := dict "show" false -}}
+  {{- $grid := dict "show" true "lineStyle" (dict "color" $c.grid "width" $px.rule "type" "solid") -}}
+  {{- $baseline := dict "show" true "lineStyle" (dict "color" $c.baseline "width" $px.rule) -}}
+  {{- $categoryAxis := dict "axisLine" $baseline "axisTick" $hidden "axisLabel" $axisLabel "splitLine" $hidden "splitArea" $hidden "nameTextStyle" (dict "color" $c.muted "fontSize" $px.axis) -}}
+  {{- $valueAxis := dict "axisLine" $hidden "axisTick" $hidden "axisLabel" $axisLabel "splitLine" $grid "splitArea" $hidden "nameTextStyle" (dict "color" $c.muted "fontSize" $px.axis) -}}
+
+  {{- $theme := dict
+    "color" $categorical
+    "backgroundColor" $c.surface
+    "animation" false
+    "textStyle" (dict "color" $c.text "fontFamily" $family "fontSize" $px.label "fontWeight" $regular)
+    "title" (dict "left" 0
+      "textStyle" (dict "color" $c.text "fontSize" $px.title "fontWeight" $semibold)
+      "subtextStyle" (dict "color" $c.muted "fontSize" $px.label))
+    "line" (dict "lineStyle" (dict "width" $px.line) "symbol" "circle" "symbolSize" $px.point "showSymbol" false
+      "markLine" (dict "symbol" (slice "none" "none") "silent" true
+        "lineStyle" (dict "color" $c.event "width" $px.rule "type" "solid")
+        "label" (dict "color" $c.annotation "fontSize" $px.axis)))
+    "bar" (dict "itemStyle" (dict "borderRadius" 0 "borderWidth" 0) "barCategoryGap" "40%")
+    "scatter" (dict "symbol" "circle" "symbolSize" $px.point)
+    "categoryAxis" $categoryAxis
+    "timeAxis" $categoryAxis
+    "valueAxis" $valueAxis
+    "logAxis" $valueAxis
+    "legend" (dict "icon" "rect" "itemWidth" 16 "itemHeight" $px.rule "textStyle" (dict "color" $c.muted "fontSize" $px.axis))
+    "tooltip" (dict "backgroundColor" $c.surface "borderColor" $c.muted "borderWidth" $px.rule
+      "extraCssText" "border-radius: 0; box-shadow: none;"
+      "textStyle" (dict "color" $c.text "fontSize" $px.axis)
+      "axisPointer" (dict "lineStyle" (dict "color" $c.muted "width" $px.rule) "crossStyle" (dict "color" $c.muted "width" $px.rule)))
+    "axisPointer" (dict "lineStyle" (dict "color" $c.muted "width" $px.rule) "label" (dict "color" $c.surface "backgroundColor" $c.text))
+    "dataZoom" (dict "borderColor" $c.grid "backgroundColor" $c.surface "fillerColor" $selected
+      "textStyle" (dict "color" $c.muted "fontSize" $px.axis)
+      "handleStyle" (dict "color" $c.surface "borderColor" $c.muted)
+      "moveHandleStyle" (dict "color" $c.context)
+      "dataBackground" (dict "lineStyle" (dict "color" $c.context "width" $px.rule) "areaStyle" (dict "color" $c.range))
+      "selectedDataBackground" (dict "lineStyle" (dict "color" $c.highlight "width" $px.rule) "areaStyle" (dict "color" $c.range))
+      "emphasis" (dict "handleStyle" (dict "borderColor" $c.highlight) "moveHandleStyle" (dict "color" $c.highlight)))
+    "visualMap" (dict "inRange" (dict "color" $sequential) "textStyle" (dict "color" $c.muted "fontSize" $px.axis))
+  -}}
+  {{- $json := jsonify (dict "indent" "  ") $theme -}}
+  {{- with resources.FromString (printf "charts/echarts-theme-%s.json" $level) $json -}}
+    {{- .Publish -}}
+    {{- $urls = merge $urls (dict $level .RelPermalink) -}}
+  {{- end -}}
+{{- end -}}
+{{- return $urls -}}

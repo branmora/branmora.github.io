@@ -1,0 +1,24 @@
+{{- /*
+Flattens one DTCG token tree into a list of tokens, each a dict of
+  path:  the token's path, a list of names
+  type:  its $type, its own or inherited from the nearest enclosing group ("" when neither)
+  value: its $value
+
+Context: dict "node" (a group) "path" (the group's path) "type" (the inherited $type).
+*/ -}}
+{{- $out := slice -}}
+{{- $type := or (index .node "$type") .type -}}
+{{- $path := .path -}}
+{{- range $name, $child := .node -}}
+  {{- if not (hasPrefix $name "$") -}}
+    {{- $here := $path | append $name -}}
+    {{- if isset $child "$value" -}}
+      {{- $out = $out | append (dict "path" $here "type" (or (index $child "$type") $type) "value" (index $child "$value")) -}}
+    {{- else -}}
+      {{- range partial "tokens/walk.html" (dict "node" $child "path" $here "type" $type) -}}
+        {{- $out = $out | append . -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- return $out -}}

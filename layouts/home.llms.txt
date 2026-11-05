@@ -1,0 +1,20 @@
+{{- /* llms.txt (spec 007), at the site's root: each language's pages, each with its title on the
+same line as its address. The same pages as the sitemap, in address order, so a section comes
+before the pages under it. Headings and descriptions come from the string files. */ -}}
+{{- $strings := dict -}}
+{{- range hugo.Sites -}}
+  {{- $strings = merge $strings (dict .Language.Lang (os.ReadFile (printf "i18n/%s.toml" .Language.Lang) | transform.Unmarshal (dict "format" "toml"))) -}}
+{{- end -}}
+{{- $own := index $strings site.Language.Lang -}}
+# {{ index $own "siteTitle" }}
+
+> {{ index $own "siteDescription" }}
+{{ range hugo.Sites }}
+  {{- $s := index $strings .Language.Lang }}
+## {{ index $own (printf "language_%s" .Language.Lang) }}
+{{ range sort (where .Pages "Sitemap.Disable" "ne" true) "Permalink" }}
+  {{- if .Permalink }}
+- [{{ if .IsHome }}{{ index $s "siteTitle" }} · {{ index $s "siteDescription" }}{{ else }}{{ .Title }}{{ end }}]({{ .Permalink }})
+  {{- end }}
+{{- end }}
+{{ end -}}

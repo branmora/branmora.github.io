@@ -1,0 +1,46 @@
+{{- /* The root 404 page (spec 020), /404.html, written once by the English home
+(content/_index.en.md, hugo.toml outputFormats.notfound). GitHub Pages serves it for any missing
+address, at that address and at any depth, so it names every address absolute or root-relative
+(RelPermalink, with baseURL at the domain's root). It reads in both languages: the default
+language's page, then the other's part marked with lang, each with its own 404 strings and a link to
+its home. It carries no canonical, alternates, or social tags, as the per-language 404 pages
+(layouts/404.html) do not. Context: the English home. */ -}}
+{{- $page := . }}
+{{- $languages := slice . }}
+{{- range .Translations }}{{ $languages = $languages | append . }}{{ end }}
+<!doctype html>
+<html lang="{{ site.Language.Lang }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  {{- partial "site/assets.html" . }}
+  {{- partial "site/scripts.html" . }}
+  <title>{{ T "notFoundTitle" }} · {{ T "siteTitle" }}</title>
+  <meta name="description" content="{{ T "notFoundText" }}">
+</head>
+<body>
+  <div class="frame" data-frame>
+  {{ partial "site/header.html" . }}
+  <main class="not-found">
+    {{- range $i, $home := $languages }}
+    {{- $lang := .Language.Lang }}
+    {{- if eq $i 0 }}
+    <h1>{{ T "notFoundTitle" }}</h1>
+    {{ partial "components/metadata.html" (dict "items" (slice (dict "key" (T "notFoundStatus") "value" "404"))) }}
+    <p>{{ T "notFoundText" }}</p>
+    <p><a href="{{ $home.RelPermalink }}">{{ T "notFoundHome" }}</a></p>
+    {{- else }}
+    <section class="not-found-translation" lang="{{ $lang }}">
+      <h2>{{ partial "site/string.html" (dict "lang" $lang "key" "notFoundTitle") }}</h2>
+      <p>{{ partial "site/string.html" (dict "lang" $lang "key" "notFoundText") }}</p>
+      <p><a href="{{ $home.RelPermalink }}" hreflang="{{ $lang }}">{{ partial "site/string.html" (dict "lang" $lang "key" "notFoundHome") }}</a></p>
+    </section>
+    {{- end }}
+    {{- end }}
+    <p class="not-found-search"><button type="button" data-palette-open hidden><kbd aria-hidden="true">/</kbd> {{ T "notFoundSearch" }}</button></p>
+  </main>
+  {{ partial "site/footer.html" . }}
+  </div>
+  {{ partial "site/palette.html" . }}
+</body>
+</html>

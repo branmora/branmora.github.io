@@ -1,0 +1,14 @@
+# Hugo
+/public/
+/resources/_gen/
+.hugo_build.lock
+
+# Python
+.venv/
+__pycache__/
+
+# Tools fetched locally (Hugo, by scripts/hugo.py)
+/.tools/
+
+# macOS
+.DS_Store

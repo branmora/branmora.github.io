@@ -1,0 +1,42 @@
+{{- /* The page's description (specs 007 and 020), in its language: the `<meta name="description">`,
+what the social tags (#106) reuse, and the `description` of a piece's BlogPosting. Interface pages
+take theirs from i18n/<lang>.toml: home, each topic view (its own line, description_topic_<slug>,
+or else description_topic with the topic's name), the writing page, About (with the author's facts
+from its front matter), and the 404 pages. A piece (a post or a note) that sets `description` uses
+it as written; content/validate.html has checked it is text of at most 160 characters. A project
+uses its `summary`. Every other page, and a piece without `description`, uses the start of its own
+rendered text with its figures left out, so no image's caption or alt text leads it: plain text
+cut at the last word break within 160 characters, with an ellipsis when it was cut. A page with no
+text falls back to its title on a string. Context: the page. Returns a string. */ -}}
+{{- $site := T "siteTitle" }}
+{{- $max := 160 }}
+{{- $text := "" }}
+{{- if .IsHome }}
+  {{- $text = T "description_home" (dict "site" $site) }}
+{{- else if eq .Layout "topic" }}
+  {{- $text = T (printf "description_topic_%s" .Params.topic) }}
+  {{- if not $text }}{{ $text = T "description_topic" (dict "site" $site "topic" .Title) }}{{ end }}
+{{- else if eq .Kind "404" }}
+  {{- $text = T "notFoundText" }}
+{{- else if eq .Layout "projects" }}
+  {{- $text = T "description_projects" (dict "site" $site) }}
+{{- else if eq .Layout "writing" }}
+  {{- $text = T "description_writing" (dict "site" $site) }}
+{{- else if eq .Layout "about" }}
+  {{- $text = T "description_about" (dict "name" .Params.name "profession" .Params.description "org" .Params.current.org) }}
+{{- else if and (partialCached "content/is-piece.html" . .Path) (isset .Params "description") }}
+  {{- $text = printf "%v" .Params.description | replaceRE `\s+` " " | strings.TrimSpace }}
+{{- else if and (partialCached "content/is-project.html" . .Path) (isset .Params "summary") }}
+  {{- $text = printf "%v" .Params.summary | replaceRE `\s+` " " | strings.TrimSpace }}
+{{- else }}
+  {{- $text = replaceRE `(?s)<figure\b.*?</figure>` " " (string .Content) | plainify | htmlUnescape | replaceRE `\s+` " " | strings.TrimSpace }}
+  {{- if gt (strings.RuneCount $text) $max }}
+    {{- $cut := substr $text 0 $max }}
+    {{- with findRE `^.*\s` $cut 1 }}{{ $cut = index . 0 }}{{ end }}
+    {{- $text = printf "%s…" (strings.TrimRight " ,;:.-–—" $cut) }}
+  {{- end }}
+{{- end }}
+{{- if not $text }}
+  {{- $text = T "description_page" (dict "site" $site "title" .Title) }}
+{{- end }}
+{{- return $text }}

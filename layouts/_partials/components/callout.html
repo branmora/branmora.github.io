@@ -1,0 +1,6 @@
+{{- /* A callout: its label runs in before the text, or hangs in the gutter on wide screens.
+No box and no colored border: the label says what it is.
+Context: dict "kind" (note or caution), "text" (Markdown), "id" (unique on the page). */ -}}
+<aside class="callout" data-kind="{{ .kind }}" aria-labelledby="{{ .id }}">
+  <p><span class="callout-label" id="{{ .id }}">{{ T (printf "callout_%s" .kind) }}</span> {{ .text | markdownify }}</p>
+</aside>

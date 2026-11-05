@@ -1,0 +1,12 @@
+{{- /* A project's years as one string from the string files: `2023–2025`, `2026–present` while it
+runs, or the one year when it began and ended in it. Context: the model's years, {start, end}. */ -}}
+{{- $y := . -}}
+{{- $text := "" -}}
+{{- if not $y.end -}}
+  {{- $text = T "yearsOngoing" (dict "start" $y.start) -}}
+{{- else if eq $y.start $y.end -}}
+  {{- $text = printf "%d" $y.start -}}
+{{- else -}}
+  {{- $text = T "yearsRange" (dict "start" $y.start "end" $y.end) -}}
+{{- end -}}
+{{- return $text -}}

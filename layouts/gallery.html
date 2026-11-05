@@ -1,0 +1,32 @@
+{{- /*
+The design system gallery (spec 002): every component, in the theme in use. Built in development
+and test only (gallery/ is mounted there and nowhere else). Its words come from the gallery's
+content files; its values come from the token files, so it cannot drift from them.
+
+Each section is a two-track grid, the layout the site's pages use: the mono gutter on the left
+holds the component's name and tokens, the reading column holds its rule and its specimen.
+*/ -}}
+{{ define "head" }}
+  {{- with resources.Get "css/gallery.css" | fingerprint }}
+  <link rel="stylesheet" href="{{ .RelPermalink }}" integrity="{{ .Data.Integrity }}">
+  {{- end }}
+{{- end }}
+{{ define "main" }}
+<main class="gallery">
+  <header class="track">
+    <h1 class="column">{{ .Title }}</h1>
+    <p class="column">{{ .Params.intro }}</p>
+  </header>
+  {{- $page := . }}
+  {{- range .Params.components }}
+  <section class="track specimen" data-component="{{ .id }}" aria-labelledby="component-{{ .id }}">
+    <div class="gutter specimen-name">
+      <h2 id="component-{{ .id }}">{{ .name }}</h2>
+      <div class="specimen-tokens"><span class="key">{{ $page.Params.tokensKey }}</span> {{ .tokens }}</div>
+    </div>
+    <p class="column specimen-rule">{{ .rule }}</p>
+    {{ partial (printf "gallery/%s.html" .id) (dict "c" . "page" $page) }}
+  </section>
+  {{- end }}
+</main>
+{{ end }}

@@ -1,0 +1,11 @@
+{{- /*
+The value of one token in a table from charts/themes.html, with aliases followed to the end.
+
+Context: dict "table" (token path joined by dots → $value) "path" (a token path joined by dots).
+*/ -}}
+{{- $v := index .table .path -}}
+{{- if eq $v nil }}{{ errorf "charts/resolve.html: no token %s" .path }}{{ end -}}
+{{- if and (eq (printf "%T" $v) "string") (findRE `^\{[^{}]+\}$` $v) -}}
+  {{- $v = partial "charts/resolve.html" (dict "table" .table "path" (strings.TrimSuffix "}" (strings.TrimPrefix "{" $v))) -}}
+{{- end -}}
+{{- return $v -}}

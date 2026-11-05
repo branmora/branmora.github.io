@@ -1,0 +1,4 @@
+{{- /* The topic view of a topic slug in the current language, made by content/_content.gotmpl.
+Context: the slug. Returns the page, or nil when the slug has no view. */ -}}
+{{- $slug := . -}}
+{{- return index (where site.RegularPages "Params.topic" $slug) 0 -}}

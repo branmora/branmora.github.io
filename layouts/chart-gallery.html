@@ -1,0 +1,119 @@
+{{- /*
+The chart gallery (specs 003 and 009): figures from fixed, synthetic sample data, one per entry in
+the page's params.charts. Built in development
+and test only (gallery/ is mounted there and nowhere else), so ECharts and the sample data never
+reach a production build.
+
+Each figure appears in the interactive view, which fits its container and adds tooltips, series
+toggles and zoom, and at the two static canvases, 1200×1200 and 1080×1350. Its data and words are
+a JSON file in this page's bundle (gallery/charts/*.json). The page writes the table from it, so
+every number reads without JavaScript, and hands the same file to assets/js/charts.js, which
+turns it into an ECharts option per preset.
+*/ -}}
+{{ define "head" }}
+  {{- with resources.Get "css/gallery.css" | fingerprint }}
+  <link rel="stylesheet" href="{{ .RelPermalink }}" integrity="{{ .Data.Integrity }}">
+  {{- end }}
+  {{- with resources.Get "vendor/echarts/echarts.min.js" | fingerprint }}
+  <script src="{{ .RelPermalink }}" integrity="{{ .Data.Integrity }}" defer></script>
+  {{- end }}
+  {{- with resources.Get "js/charts.js" | minify | fingerprint }}
+  <script src="{{ .RelPermalink }}" integrity="{{ .Data.Integrity }}" defer></script>
+  {{- end }}
+{{- end }}
+{{ define "main" }}
+{{- $values := partialCached "charts/values.html" . "chart-values" }}
+{{- $themes := partialCached "charts/themes.html" . "charts" }}
+<main class="gallery chart-gallery" data-chart-gallery data-chart-themes="{{ $themes | jsonify }}" data-chart-keys="{{ .Params.keys | jsonify }}">
+  <header class="track">
+    <h1 class="column">{{ .Title }}</h1>
+    <p class="column">{{ .Params.intro }}</p>
+  </header>
+  {{- with .Params.chartColors }}
+  <section class="track specimen" data-component="chart-colors" aria-labelledby="chart-colors">
+    <div class="gutter specimen-name">
+      <h2 id="chart-colors">{{ .name }}</h2>
+      <div class="specimen-tokens"><span class="key">{{ $.Params.tokensKey }}</span> {{ .tokens }}</div>
+    </div>
+    <p class="column specimen-rule">{{ .rule }}</p>
+    <div class="column">{{ partial "gallery/chart-colors.html" (dict "c" . "values" $values) }}</div>
+  </section>
+  {{- end }}
+  {{- $page := . }}
+  {{- range .Params.charts }}
+  {{- $id := .id }}
+  {{- $spec := ($page.Resources.Get (printf "%s.json" $id)).Content | transform.Unmarshal }}
+  <section class="track specimen" data-component="chart-{{ $id }}" aria-labelledby="chart-{{ $id }}">
+    <div class="gutter specimen-name">
+      <h2 id="chart-{{ $id }}">{{ .name }}</h2>
+      <div class="specimen-tokens"><span class="key">{{ $page.Params.tokensKey }}</span> {{ .tokens }}</div>
+    </div>
+    <p class="column specimen-rule">{{ .rule }}</p>
+    {{- /* A map's boundary file is published, and named, only by a figure that draws it. */}}
+    {{- $mapURL := "" }}
+    {{- if eq $spec.kind "map" }}{{ with resources.Get (printf "maps/%s.json" $spec.map) | fingerprint }}{{ $mapURL = .RelPermalink }}{{ end }}{{ end }}
+    <figure class="chart-specimen" data-source="{{ $spec.source }}" aria-labelledby="chart-{{ $id }}-title"{{ with $mapURL }} data-map="{{ . }}"{{ end }}>
+      <p class="chart-specimen-title" id="chart-{{ $id }}-title">{{ $spec.title }}</p>
+      <p class="chart-specimen-subtitle">{{ $spec.subtitle }}</p>
+      {{- $names := slice }}
+      {{- if or (eq $spec.kind "line") (eq $spec.kind "small-multiples") }}{{ range $spec.series }}{{ $names = $names | append .name }}{{ end }}{{ end }}
+      {{- if eq $spec.kind "dot-range" }}{{ range $spec.groups }}{{ $names = $names | append .name }}{{ end }}{{ end }}
+      {{- if eq $spec.kind "slope" }}{{ range $spec.groups }}{{ $names = $names | append .name }}{{ end }}{{ end }}
+      {{- if eq $spec.kind "scatter" }}{{ range $spec.groups }}{{ $names = $names | append .name }}{{ end }}{{ end }}
+      <div class="chart-interactive">
+        <p class="chart-canvas-name">{{ $page.Params.interactive.name }}</p>
+        {{- if gt (len $names) 1 }}
+        <div class="chart-toggles" role="group" aria-label="{{ $page.Params.interactive.togglesLabel }}">
+          {{- range $names }}
+          <button type="button" data-series-toggle="{{ . }}" aria-pressed="true" hidden>{{ . }}</button>
+          {{- end }}
+        </div>
+        {{- end }}
+        {{- if eq $spec.kind "map" }}
+        {{- with $page.Params.interactive.zoom }}
+        <div class="chart-toggles" role="group" aria-label="{{ .label }}">
+          {{- range $action := slice "in" "out" "reset" }}
+          <button type="button" data-map-zoom="{{ $action }}" hidden>{{ index $page.Params.interactive.zoom $action }}</button>
+          {{- end }}
+        </div>
+        {{- end }}
+        {{- end }}
+        <div class="interactive-frame" data-surface="paper">
+          <div data-preset="interactive">
+            <div class="chart" data-chart="{{ $id }}" role="img" aria-label="{{ $spec.alt }}"></div>
+          </div>
+        </div>
+      </div>
+      <div class="chart-canvases">
+        {{- range $page.Params.presets }}
+        {{- $w := index $values (printf "chart.static.%s.width" .id) }}
+        {{- $h := index $values (printf "chart.static.%s.height" .id) }}
+        <div class="chart-canvas">
+          <p class="chart-canvas-name">{{ .name }}</p>
+          <div class="canvas-frame" data-surface="paper" style="aspect-ratio: {{ $w }} / {{ $h }}">
+            <div data-preset="{{ .id }}" style="width: var(--chart-static-{{ .id }}-width); height: var(--chart-static-{{ .id }}-height)">
+              <div class="chart" data-chart="{{ $id }}" role="img" aria-label="{{ $spec.alt }}"></div>
+            </div>
+          </div>
+        </div>
+        {{- end }}
+      </div>
+      <div class="chart-footer">
+        {{- range $key := slice "n" "base" "method" }}
+        {{- with index $spec $key }}
+        <p><span class="key">{{ index $page.Params.keys $key }}:</span> {{ . }}</p>
+        {{- end }}
+        {{- end }}
+        {{- with $spec.note }}
+        <p><span class="key">{{ $page.Params.keys.note }}:</span> <span data-axis-note>{{ . }}</span></p>
+        {{- end }}
+        <p><span class="key">{{ $page.Params.keys.source }}:</span> {{ $spec.source }}</p>
+      </div>
+      {{ partial "charts/table.html" (dict "spec" $spec "label" $page.Params.tableLabel "id" $id) }}
+      <script type="application/json" data-chart-spec>{{ $spec | jsonify | safeJS }}</script>
+    </figure>
+  </section>
+  {{- end }}
+  <script type="application/json" id="chart-tokens">{{ $values | jsonify | safeJS }}</script>
+</main>
+{{ end }}

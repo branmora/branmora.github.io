@@ -1,0 +1,7 @@
+{{- /* The figure block specimen. Its downloads are the gallery's own files (gallery/wages.<lang>.*,
+copies of the sample post's), so it renders the same in every build that serves the gallery,
+the development build included, which holds no sample (spec 016). */ -}}
+{{- $f := .c.figure -}}
+<div class="column">
+  {{ partial "components/figure.html" (dict "id" "figure-sample" "title" $f.title "alt" $f.alt "values" $f.values "head" $f.head "rows" $f.rows "sources" $f.sources "downloads" .page) }}
+</div>

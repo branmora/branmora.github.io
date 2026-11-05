@@ -1,0 +1,9 @@
+{{- /* One interface string in a language other than the one being built, read from that language's
+string file, i18n/<lang>.toml (T answers only in the current one). The root 404 page uses it for
+its other language's part. A key holds its text directly or under `other`. Context: dict "lang"
+"key". Returns a string. */ -}}
+{{- $strings := os.ReadFile (printf "i18n/%s.toml" .lang) | transform.Unmarshal (dict "format" "toml") }}
+{{- $value := index $strings .key }}
+{{- if reflect.IsMap $value }}{{ $value = index $value "other" }}{{ end }}
+{{- if not $value }}{{ errorf "i18n/%s.toml has no %q" .lang .key }}{{ end }}
+{{- return $value }}

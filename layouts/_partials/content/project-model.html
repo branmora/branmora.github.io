@@ -1,0 +1,46 @@
+{{- /*
+  The resolved model of a project (spec 011), as CONTENT.md, Projects, describes it. Takes a page
+  that content/validate.html has accepted; returns a dict. content/model.html returns it for a
+  project, so the model.json output is this dict as JSON.
+*/ -}}
+{{- $page := . -}}
+{{- $p := $page.Params -}}
+
+{{- $topics := slice -}}
+{{- range $p.topics -}}
+  {{- $topics = $topics | append (dict "slug" . "name" (T (printf "topic_%s" .))) -}}
+{{- end -}}
+
+{{- $translations := dict -}}
+{{- range $page.Translations -}}
+  {{- $translations = merge $translations (dict .Language.Lang .Permalink) -}}
+{{- end -}}
+
+{{- $end := index $p.years "end" -}}
+{{- with $end -}}{{- $end = int (printf "%v" .) -}}{{- end -}}
+{{- $years := dict "start" (int (printf "%v" (index $p.years "start"))) "end" $end -}}
+
+{{- $links := slice -}}
+{{- range $p.links -}}
+  {{- $links = $links | append (dict "label" .label "url" .url) -}}
+{{- end -}}
+
+{{- $image := "" -}}
+{{- with $p.image -}}
+  {{- $image = dict "url" ($page.Resources.Get .src).Permalink "alt" .alt -}}
+{{- end -}}
+
+{{- return dict
+  "kind" "project"
+  "lang" $page.Language.Lang
+  "sample" (eq $p.sample true)
+  "source" (strings.TrimPrefix (printf "%s/" hugo.WorkingDir) $page.File.Filename)
+  "translations" $translations
+  "title" $page.Title
+  "summary" $p.summary
+  "years" $years
+  "role" $p.role
+  "topics" $topics
+  "links" $links
+  "image" (cond (eq $image "") nil $image)
+-}}

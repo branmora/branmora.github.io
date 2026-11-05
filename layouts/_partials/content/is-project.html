@@ -1,0 +1,7 @@
+{{- /* Whether a page is a project (spec 011): a regular page under a `projects/` folder, in content/
+   or in samples/. Takes the page; returns a bool. */ -}}
+{{- $project := false -}}
+{{- if and .IsPage .File -}}
+  {{- $project = gt (len (findRE `/projects(/|$)` (printf "/%s" (path.Dir .File.Path)))) 0 -}}
+{{- end -}}
+{{- return $project -}}

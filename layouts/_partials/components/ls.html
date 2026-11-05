@@ -1,0 +1,30 @@
+{{- /* The ls -l list: the date in a fixed mono column, then the title, whose wrapped lines hang
+under it, and a quiet line below the title with the topics and, for a piece written in one
+language only, that language's name (spec 010: no kind column, no language codes). Hover or focus
+draws the accent bar beside a row. With no rows it says so instead.
+Context: a list of dicts: "date", "langs" (the languages it is written in), "title", "href", and
+optionally "topics" (slugs; names from the string files). A project's row has "years" (its years
+as text, project/years.html) in place of "date", in the same column. */ -}}
+{{- if . }}
+<ul class="ls">
+  {{- range . }}
+  <li>
+    {{- with .years }}
+    <span class="ls-years">{{ . }}</span>
+    {{- else }}
+    {{ partial "components/date.html" .date }}
+    {{- end }}
+    <a class="ls-title quiet-link" href="{{ .href }}">{{ .title }}</a>
+    {{- $only := and .langs (eq (len .langs) 1) }}
+    {{- if or .topics $only }}
+    <p class="ls-meta">
+      {{- with .topics }}<span class="ls-topics">{{ range $i, $t := . }}{{ if $i }}, {{ end }}{{ T (printf "topic_%s" $t) }}{{ end }}</span>{{ end }}
+      {{- if $only }} <span class="ls-lang">{{ T (printf "language_%s" (index .langs 0)) }}</span>{{ end -}}
+    </p>
+    {{- end }}
+  </li>
+  {{- end }}
+</ul>
+{{- else }}
+<p class="ls-empty">{{ T "listEmpty" }}</p>
+{{- end }}

@@ -1,0 +1,10 @@
+{{- /* Metadata as key: value lines. The colon comes from the stylesheet.
+Context: dict "items" (a list of dicts: "key", and "date" as YYYY-MM-DD or "value") and "class". */ -}}
+<dl class="metadata{{ with .class }} {{ . }}{{ end }}">
+  {{- range .items }}
+  <div>
+    <dt>{{ .key }}</dt>
+    <dd>{{ with .date }}{{ partial "components/date.html" . }}{{ else }}{{ .value }}{{ end }}</dd>
+  </div>
+  {{- end }}
+</dl>

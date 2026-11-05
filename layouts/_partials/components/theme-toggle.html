@@ -1,0 +1,6 @@
+{{- /* The theme toggle (spec 010; DESIGN.md, Theme toggle): one button that cycles light, dark, and
+system, read as a key: value line. Its text is its accessible name and states the current choice;
+assets/js/theme.js keeps the text and data-theme-choice up to date, and shows it, since without
+JavaScript it does nothing and the page follows the system. Context: none. */ -}}
+<button type="button" class="theme-toggle" data-theme-toggle data-theme-choice="system" hidden
+  {{- range slice "light" "dark" "system" }} data-label-{{ . }}="{{ T (printf "theme_%s" .) }}"{{ end }}><span class="key">{{ T "themeLabel" }}</span> <span class="value">{{ T "theme_system" }}</span></button>

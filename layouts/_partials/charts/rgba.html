@@ -1,0 +1,6 @@
+{{- /*
+One color token as rgba() with an alpha, for translucent fills such as the zoom window: the
+token's own channels, so the color is still the token's. Context: dict "table" "path" "alpha".
+*/ -}}
+{{- $c := index (partial "charts/resolve.html" .) "components" -}}
+{{- return printf "rgba(%d, %d, %d, %v)" (int (math.Round (mul (index $c 0) 255))) (int (math.Round (mul (index $c 1) 255))) (int (math.Round (mul (index $c 2) 255))) .alpha -}}

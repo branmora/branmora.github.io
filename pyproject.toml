@@ -1,0 +1,11 @@
+# The build's own tooling: Pagefind, which `uv run scripts/hugo.py` runs after every build to write
+# the search index. Hugo itself comes from `.hugo-version` (scripts/hugo.py fetches it).
+[project]
+name = "branmora-github-io"
+version = "0.0.0"
+description = "Build tooling for branmora.github.io"
+requires-python = ">=3.12"
+dependencies = ["pagefind[bin]==1.6.0"]
+
+[tool.uv]
+package = false

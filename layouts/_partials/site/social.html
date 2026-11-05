@@ -1,0 +1,35 @@
+{{- /* Open Graph and Twitter card tags (spec 007): the page's title, its description
+(site/description.html), its own address, its locale and its translations' (hugo.toml), its kind (a piece's with its dates of publication and
+change, site/modified.html), its image (site/social-image.html), and the
+site's name. The 404 pages answer at any address, so they carry none. Context: the page. */ -}}
+{{- if ne .Kind "404" }}
+{{- $title := cond .IsHome (T "siteTitle") (.Title | default (T "siteTitle")) }}
+{{- $description := partial "site/description.html" . }}
+{{- $image := partial "site/social-image.html" . }}
+<meta property="og:site_name" content="{{ T "siteTitle" }}">
+<meta property="og:title" content="{{ $title }}">
+<meta property="og:description" content="{{ $description }}">
+<meta property="og:url" content="{{ .Permalink }}">
+<meta property="og:locale" content="{{ site.Params.ogLocale }}">
+{{- range .Translations }}
+<meta property="og:locale:alternate" content="{{ .Site.Params.ogLocale }}">
+{{- end }}
+<meta property="og:type" content="{{ cond (and .IsPage (in (slice "post" "note") .Type)) "article" "website" }}">
+{{- if and .IsPage (in (slice "post" "note") .Type) }}
+<meta property="article:published_time" content="{{ .Date.Format "2006-01-02T15:04:05Z07:00" }}">
+<meta property="article:modified_time" content="{{ (partial "site/modified.html" .).Format "2006-01-02T15:04:05Z07:00" }}">
+{{- end }}
+{{- with $image }}
+<meta property="og:image" content="{{ .url }}">
+<meta property="og:image:width" content="{{ .width }}">
+<meta property="og:image:height" content="{{ .height }}">
+<meta property="og:image:alt" content="{{ .alt }}">
+{{- end }}
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{ $title }}">
+<meta name="twitter:description" content="{{ $description }}">
+{{- with $image }}
+<meta name="twitter:image" content="{{ .url }}">
+<meta name="twitter:image:alt" content="{{ .alt }}">
+{{- end }}
+{{- end }}

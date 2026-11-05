@@ -1,0 +1,8 @@
+<div class="column">
+  <p>{{ .c.prose | markdownify }}</p>
+  <nav class="link-row">
+    {{- range .page.AllTranslations }}
+    <a href="{{ .RelPermalink }}" hreflang="{{ .Language.Lang }}" lang="{{ .Language.Lang }}"{{ if eq .Language.Lang $.page.Language.Lang }} aria-current="page"{{ end }}>{{ T (printf "language_%s" .Language.Lang) }}</a>
+    {{- end }}
+  </nav>
+</div>

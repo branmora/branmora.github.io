@@ -1,0 +1,35 @@
+{{- /*
+The chart color sets, light and dark, standard and high contrast, each on its own surface: the highlight, the
+categorical order, the sequential scale, and the diverging scale. Each swatch is the chart token's
+custom property, so the strip cannot drift from tokens/chart.tokens.json. Each set's labels take
+that set's chart text color, so they read on its surface in every page theme.
+
+Context: dict "c" (the page's chartColors params) "values" (charts/values.html).
+*/ -}}
+{{- $c := .c -}}
+{{- $values := .values -}}
+{{- $groups := slice
+  (dict "name" $c.highlight "paths" (slice "highlight.%s.mark" "highlight.%s.label"))
+  (dict "name" $c.categorical "paths" (slice "categorical.%s.1" "categorical.%s.2" "categorical.%s.3" "categorical.%s.4" "categorical.%s.5"))
+  (dict "name" $c.sequential "paths" (slice "sequential.%s.1" "sequential.%s.2" "sequential.%s.3" "sequential.%s.4" "sequential.%s.5" "sequential.%s.6" "sequential.%s.7"))
+  (dict "name" $c.diverging "paths" (slice "diverging.warm.3" "diverging.warm.2" "diverging.warm.1" "diverging.neutral" "diverging.cool.1" "diverging.cool.2" "diverging.cool.3"))
+-}}
+<div class="chart-color-sets">
+  {{- range $level := slice "standard" "high" "dark-standard" "dark-high" }}
+  <div class="chart-color-set" style="{{ printf "background: var(--chart-surface-%s); --theme-text: var(--chart-ink-%s-text); --theme-muted: var(--chart-ink-%s-text)" $level $level $level | safeCSS }}">
+    <h3 class="swatch-heading">{{ index $c $level }}</h3>
+    {{- range $groups }}
+    <p class="chart-color-name">{{ .name }}</p>
+    {{- $hexes := slice }}
+    <div class="chart-strip" aria-hidden="true">
+      {{- range .paths }}
+      {{- $path := cond (strings.Contains . "%s") (printf . $level) . }}
+      {{- $hexes = $hexes | append (index $values (printf "chart.%s" $path)) }}
+      <span style="{{ printf "background: var(--chart-%s)" (replace $path "." "-") | safeCSS }}"></span>
+      {{- end }}
+    </div>
+    <p class="chart-strip-hex">{{ delimit $hexes " " }}</p>
+    {{- end }}
+  </div>
+  {{- end }}
+</div>

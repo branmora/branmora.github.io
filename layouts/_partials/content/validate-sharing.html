@@ -1,0 +1,81 @@
+{{- /*
+  Validates the fields for search and sharing (spec 020) of a piece or a project, for
+  content/validate.html and content/validate-project.html.
+
+  Takes a dict: `page`, the page, and `fields`, the names of the fields that apply to it. Every
+  problem is reported with `errorf` as "<content file>: <field> <problem>", the content file's path
+  from the repository root. Returns false when it reported a problem, true otherwise.
+
+  Each field is optional and, when set, text that is not empty. Its rule in $rules may also give:
+  - `max`: its limit in characters;
+  - `pattern` and `form`: a regular expression it must match, and how CONTENT.md says it;
+  - `address`: true when the field sets the page's address, so no other page of the language may
+    sit at the same address.
+  A later field joins $rules with its own entry.
+
+  When `fields` holds `short_title`, the page's `<title>` (site/title.html: the short title or the
+  title, then ` · ` and the site's name) must also run at most $titleMax characters, the length
+  search results show; the message names `short_title` when the page sets one, `title` otherwise.
+
+  Hugo turns some of these fields into text before a template sees them (a list `description` or
+  `slug` reads as empty), so each is read as written, from the content file's own YAML front
+  matter, and from the page's params when that cannot be read.
+*/ -}}
+{{- $page := .page -}}
+{{- $fields := .fields -}}
+{{- $ok := true -}}
+{{- $at := strings.TrimPrefix (printf "%s/" hugo.WorkingDir) $page.File.Filename -}}
+{{- $rules := dict
+  "description" (dict "max" 160)
+  "short_title" (dict)
+  "slug" (dict "pattern" `^[a-z0-9]+(-[a-z0-9]+)*$` "form" "lowercase letters a to z, digits, and single hyphens between them" "address" true)
+-}}
+
+{{- $written := $page.Params -}}
+{{- with try (os.ReadFile $at) -}}
+  {{- with and (not .Err) (findRESubmatch `(?s)\A---\r?\n(.*?)\r?\n---\s*(\n|\z)` .Value 1) -}}
+    {{- with try (transform.Unmarshal (dict "format" "yaml") (index (index . 0) 1)) -}}
+      {{- if and (not .Err) (reflect.IsMap .Value) -}}{{- $written = .Value -}}{{- end -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{- range $field := $fields -}}
+  {{- $rule := index $rules $field -}}
+  {{- if isset $written $field -}}
+    {{- $v := index $written $field -}}
+    {{- if ne (printf "%T" $v) "string" -}}
+      {{- $ok = false -}}{{- errorf "%s: %s must be text" $at $field -}}
+    {{- else if eq (strings.TrimSpace $v) "" -}}
+      {{- $ok = false -}}{{- errorf "%s: %s is empty" $at $field -}}
+    {{- else if and $rule.max (gt (strings.RuneCount $v) $rule.max) -}}
+      {{- $ok = false -}}{{- errorf "%s: %s runs %d characters; it may run at most %d" $at $field (strings.RuneCount $v) $rule.max -}}
+    {{- else if and $rule.pattern (not (findRE $rule.pattern $v 1)) -}}
+      {{- $ok = false -}}{{- errorf "%s: %s %q must be %s" $at $field $v $rule.form -}}
+    {{- else if $rule.address -}}
+      {{- range $page.Site.Pages -}}
+        {{- if and (eq .RelPermalink $page.RelPermalink) (ne .Path $page.Path) -}}
+          {{- $other := "" -}}
+          {{- with .File -}}{{- $other = strings.TrimPrefix (printf "%s/" hugo.WorkingDir) .Filename -}}{{- end -}}
+          {{- $ok = false -}}{{- errorf "%s: %s %q puts the page at %s, where %s already is" $at $field $v $page.RelPermalink (or $other .Path) -}}
+        {{- end -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{- $titleMax := 60 -}}
+{{- if and $ok (in $fields "short_title") -}}
+  {{- $title := partial "site/title.html" $page -}}
+  {{- $runs := strings.RuneCount $title -}}
+  {{- if gt $runs $titleMax -}}
+    {{- $ok = false -}}
+    {{- if isset $written "short_title" -}}
+      {{- errorf "%s: short_title makes the <title> %q run %d characters; with the site's name it may run at most %d" $at $title $runs $titleMax -}}
+    {{- else -}}
+      {{- errorf "%s: title makes the <title> %q run %d characters; with the site's name it may run at most %d, so set a short_title" $at $title $runs $titleMax -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{- return $ok -}}

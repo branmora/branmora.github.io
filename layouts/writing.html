@@ -1,0 +1,11 @@
+{{- /* The writing page (spec 010): every post and note of the page's language, newest first, as the
+ls -l list home shows (content/pieces.html), with the keys that drive it. With none it says so. */ -}}
+{{ define "main" }}
+{{- $rows := partial "content/pieces.html" "" }}
+<main class="writing">
+  <h1>{{ .Title }}</h1>
+  <p class="intro">{{ T "writingIntro" }}</p>
+  {{ partial "components/ls.html" $rows }}
+  {{ partial "site/list-keys.html" $rows }}
+</main>
+{{ end }}

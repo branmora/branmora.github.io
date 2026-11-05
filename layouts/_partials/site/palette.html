@@ -1,0 +1,39 @@
+{{- /* The command palette (spec 006): the palette shell (components/palette.html) in a modal
+dialog that /, Cmd-K, and Ctrl-K open (assets/js/palette.js). Its input is a combobox over one
+listbox: the pieces Pagefind finds in this language, then the commands, which go to a page, switch
+language, or set the theme or contrast. Pagefind's script and index load on the first opening.
+Without JavaScript the dialog never opens; every command here is also a link or control on the
+page. Context: the page. */ -}}
+{{- $commands := slice (dict "kind" (T "paletteGoTo") "title" (T "paletteHome") "href" site.Home.RelPermalink "id" "home") }}
+{{- with site.GetPage "/about" }}
+{{- $commands = $commands | append (dict "kind" (T "paletteGoTo") "title" .Title "href" .RelPermalink "id" "about") }}
+{{- end }}
+<dialog class="palette-dialog" data-palette aria-label="{{ T "paletteLabel" }}"
+  data-pagefind="{{ "pagefind/pagefind.js" | relURL }}" data-base="{{ "/" | relURL }}"
+  data-searching="{{ T "paletteSearching" }}" data-no-match="{{ T "paletteNoMatch" }}" data-unavailable="{{ T "paletteUnavailable" }}">
+  <div class="palette">
+    <div class="palette-input">
+      <kbd aria-hidden="true">/</kbd>
+      <input type="text" id="palette-input" role="combobox" aria-expanded="true" aria-controls="palette-list" aria-autocomplete="list" aria-label="{{ T "paletteLabel" }}" placeholder="{{ T "palettePlaceholder" }}" autocomplete="off" spellcheck="false">
+    </div>
+    <p class="palette-status" role="status" data-palette-status hidden></p>
+    <ul class="palette-results" id="palette-list" role="listbox" aria-label="{{ T "paletteLabel" }}">
+      {{- range $commands }}
+      <li role="none" data-palette-command><a role="option" tabindex="-1" id="palette-go-{{ .id }}" href="{{ .href }}"><span class="ls-kind">{{ .kind }}</span> <span class="palette-command">{{ .title }}</span></a></li>
+      {{- end }}
+      {{- with partial "site/translation.html" . }}
+      <li role="none" data-palette-command><a role="option" tabindex="-1" id="palette-language" href="{{ .RelPermalink }}" hreflang="{{ .Language.Lang }}" rel="alternate"><span class="ls-kind">{{ T "paletteLanguage" }}</span> <span class="palette-command" lang="{{ .Language.Lang }}">{{ T "switchLanguage" }}</span></a></li>
+      {{- end }}
+      {{- range slice (dict "axis" "theme" "values" (slice "light" "dark" "system")) (dict "axis" "contrast" "values" (slice "standard" "high" "system")) }}
+      {{- $axis := .axis }}
+      {{- range .values }}
+      <li role="none" data-palette-command><button type="button" role="option" tabindex="-1" id="palette-{{ $axis }}-{{ . }}" data-set-{{ $axis }}="{{ . }}" aria-checked="false"><span class="ls-kind">{{ T (printf "%sLabel" $axis) }}</span> <span class="palette-command">{{ T (printf "%s_%s" $axis .) }} <span class="palette-current">{{ T "paletteCurrent" }}</span></span></button></li>
+      {{- end }}
+      {{- end }}
+    </ul>
+    {{ partial "components/key-hints.html" (slice
+      (dict "keys" (slice "↑" "↓") "label" (T "paletteMove"))
+      (dict "keys" (slice (T "key_enter")) "label" (T "paletteOpen"))
+      (dict "keys" (slice (T "key_esc")) "label" (T "paletteClose"))) }}
+  </div>
+</dialog>

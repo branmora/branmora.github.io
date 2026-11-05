@@ -1,0 +1,112 @@
+{{- /*
+  The resolved content model of a post or note, as CONTENT.md describes it; a project's comes from
+  content/project-model.html.
+
+  Takes the page; returns a dict. Page templates read figures from here, not from front matter,
+  so a post whose chart is missing in its language gets the other language's chart, with
+  `fallback` set so the template can say so. The model.json output is this dict as JSON.
+*/ -}}
+{{- $page := . -}}
+{{- /* A piece that fails validation has already failed the build; resolve nothing from it. */ -}}
+{{- if not (partialCached "content/validate.html" $page $page.Path) -}}
+  {{- return dict -}}
+{{- end -}}
+{{- if partial "content/is-project.html" $page -}}
+  {{- return partial "content/project-model.html" $page -}}
+{{- end -}}
+
+{{- $topics := slice -}}
+{{- range $page.Params.topics -}}
+  {{- $topics = $topics | append (dict "slug" . "name" (T (printf "topic_%s" .))) -}}
+{{- end -}}
+
+{{- $translations := dict -}}
+{{- range $page.Translations -}}
+  {{- $translations = merge $translations (dict .Language.Lang .Permalink) -}}
+{{- end -}}
+
+{{- /* A post without a chart in its language falls back to its translation's chart. */ -}}
+{{- $from := $page -}}
+{{- $fallback := false -}}
+{{- if and (eq $page.Type "post") (not $page.Params.figures) (not $page.Params.image) -}}
+  {{- range $page.Translations -}}
+    {{- if and (not $fallback) .Params.figures -}}
+      {{- $from = . -}}
+      {{- $fallback = true -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{- $figures := slice -}}
+{{- range $from.Params.figures -}}
+  {{- $png := $from.Resources.Get .png -}}
+  {{- $option := .option -}}
+  {{- with .option -}}{{- $option = ($from.Resources.Get .).Permalink -}}{{- end -}}
+  {{- $figures = $figures | append (dict
+    "lang" $from.Language.Lang
+    "fallback" $fallback
+    "option" $option
+    "png" $png.Permalink
+    "width" $png.Width
+    "height" $png.Height
+    "alt" .alt
+    "csv" ($from.Resources.Get .csv).Permalink
+  ) -}}
+{{- end -}}
+
+{{- /* The images the text shows (CONTENT.md, Images in the text), in order, as the page serves them. */ -}}
+{{- $images := slice -}}
+{{- $text := replaceRE `(?s)<!--.*?-->` "" $page.RawContent -}}
+{{- $text = replaceRE "(?ms)^ {0,3}(```|~~~).*?^ {0,3}(```|~~~)" "" $text -}}
+{{- range $match := findRESubmatch `!\[((?:[^\]\\]|\\.)*)\]\(\s*<?([^\s<>()]+)>?(?:\s+"([^"]*)")?\s*\)` $text -}}
+  {{- with partial "content/text-image.html" (dict "page" $page "name" (index $match 2)) -}}
+    {{- $images = $images | append (dict
+      "src" .Permalink
+      "width" .Width
+      "height" .Height
+      "alt" (strings.TrimSpace (index $match 1))
+      "caption" (index $match 3)
+    ) -}}
+  {{- end -}}
+{{- end -}}
+
+{{- /* A post led by an image (spec 019): the image as the page serves it, or nil. */ -}}
+{{- $image := "" -}}
+{{- if eq $page.Type "post" -}}
+  {{- with $page.Params.image -}}
+    {{- $alt := .alt -}}
+    {{- with partial "content/text-image.html" (dict "page" $page "name" .src) -}}
+      {{- $image = dict "src" .Permalink "width" .Width "height" .Height "alt" $alt -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{- $datasets := slice -}}
+{{- range $page.Params.datasets -}}
+  {{- $datasets = $datasets | append (dict
+    "url" .url
+    "license" .license
+    "retrieved" (time.Format "2006-01-02" .retrieved)
+    "checksum" .checksum
+  ) -}}
+{{- end -}}
+
+{{- return dict
+  "kind" $page.Type
+  "lang" $page.Language.Lang
+  "title" $page.Title
+  "date" ($page.Date.Format "2006-01-02")
+  "sample" (eq $page.Params.sample true)
+  "source" (strings.TrimPrefix (printf "%s/" hugo.WorkingDir) $page.File.Filename)
+  "topics" $topics
+  "translations" $translations
+  "linkedin" $page.Params.linkedin
+  "figures" $figures
+  "image" (cond (eq $image "") nil $image)
+  "images" $images
+  "sources" ($page.Params.sources | default slice)
+  "method" ($page.Params.method | default "")
+  "datasets" $datasets
+  "code_version" ($page.Params.code_version | default "")
+  "command" $page.Params.command
+-}}

@@ -1,0 +1,1 @@
+{{- partial "content/model.html" . | jsonify (dict "indent" "  ") -}}

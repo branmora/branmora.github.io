@@ -1,0 +1,57 @@
+{{- /*
+  A project's page (spec 011): the post page's .track, so a project reads as a piece's sibling. The
+  column holds what the author wrote (the title, the summary as a standfirst, the image, the text,
+  and the links); the mono gutter holds what the site says about it (years, role, topics, and the
+  languages, each translation a link with hreflang).
+
+  Context: dict "page" and "model" (content/model.html).
+*/ -}}
+{{- $page := .page -}}
+{{- $m := .model -}}
+
+{{- $languages := slice (T (printf "language_%s" $m.lang)) -}}
+{{- range $page.Translations -}}
+  {{- $languages = $languages | append (printf `<a href="%s" hreflang="%s">%s</a>` .RelPermalink .Language.Lang (T (printf "language_%s" .Language.Lang))) -}}
+{{- end -}}
+
+{{- $topics := slice -}}
+{{- range $m.topics -}}
+  {{- $name := .name | htmlEscape -}}
+  {{- with partialCached "topics/page.html" .slug .slug site.Language.Lang -}}
+    {{- $name = printf `<a href="%s">%s</a>` .RelPermalink $name -}}
+  {{- end -}}
+  {{- $topics = $topics | append $name -}}
+{{- end -}}
+
+{{- $items := slice
+  (dict "key" (T "meta_years") "value" (partial "project/years.html" $m.years))
+  (dict "key" (T "meta_role") "value" $m.role)
+  (dict "key" (T "topicsLabel") "value" (delimit $topics "\n" | safeHTML))
+  (dict "key" (T "meta_languages") "value" (delimit $languages "\n" | safeHTML))
+-}}
+
+{{- /* Each link as a key: value line: its label, then where it goes, the URL without its scheme. */ -}}
+{{- $links := slice -}}
+{{- range $m.links -}}
+  {{- $shown := .url | replaceRE `^https?://` "" | strings.TrimSuffix "/" -}}
+  {{- $links = $links | append (dict "key" (T (printf "projectLink_%s" .label)) "value" (printf `<a href="%s">%s</a>` (.url | htmlEscape) ($shown | htmlEscape) | safeHTML)) -}}
+{{- end }}
+<main class="track project" data-kind="project" data-pagefind-body data-pagefind-meta="kind:{{ T "kind_project" }}">
+  <h1 class="column">{{ $m.title }}</h1>
+  {{ partial "components/metadata.html" (dict "items" $items "class" "gutter project-meta") }}
+  <div class="column project-body">
+    <p class="project-summary">{{ $m.summary }}</p>
+    {{- with $m.image }}
+    <figure class="project-figure">
+      {{ partial "project/image.html" (dict "page" $page "model" $m "class" "project-image") }}
+    </figure>
+    {{- end }}
+    <div class="prose">
+      {{ $page.Content }}
+    </div>
+    {{- with $links }}
+    <h2 class="project-links-heading">{{ T "meta_links" }}</h2>
+    {{ partial "components/metadata.html" (dict "items" . "class" "project-links") }}
+    {{- end }}
+  </div>
+</main>

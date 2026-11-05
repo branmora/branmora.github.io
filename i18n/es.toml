@@ -1,0 +1,216 @@
+# Interface strings for Spanish. Every key here must also be in en.toml.
+siteTitle = "Brandon Mora"
+# The one-line description: the RSS channel, llms.txt, the site card's alt text, and the WebSite's
+# structured data.
+siteDescription = "Posts y entradas de blog sobre IA, economía y ciencias sociales"
+# After the name in home's <title> (spec 020, #202): the start of heroBio, the approved bio line,
+# so the title fits in 60 characters.
+homeTitle = "Científico de datos y economista"
+
+# Site header and footer (spec 006). The switcher names the other language in that language.
+switchLanguage = "english"
+viewsLabel = "opiniones"
+viewsOwn = "mías, no de mi empleador"
+
+# Names of languages, used as the text of links to a page's translations.
+language_en = "inglés"
+language_es = "español"
+
+# Shown on every sample page.
+sampleNotice = "Esta es una página de ejemplo con datos sintéticos; no es un post ni una entrada de blog real."
+
+# Topic areas, keyed by slug (spec 004). A topic with no name here is unknown.
+topic_minds-and-machines = "Mentes y máquinas"
+topic_economics-of-ai = "Economía de la IA"
+topic_living-with-ai = "Convivir con la IA"
+topic_open-science = "Ciencia abierta"
+topic_working-with-ai = "Trabajar con IA"
+
+# Theme controls (spec 002): the reader's choice of theme and contrast; "system" follows the device.
+themeLabel = "tema"
+theme_light = "claro"
+theme_dark = "oscuro"
+theme_system = "sistema"
+contrastLabel = "contraste"
+contrast_standard = "estándar"
+contrast_high = "alto"
+contrast_system = "sistema"
+
+# Figure block (spec 002): the four views of a figure, and its downloads.
+view_chart = "gráfico"
+view_table = "tabla"
+view_sources = "fuentes"
+view_download = "descargas"
+figureViews = "Vistas de la figura"
+download_csv = "datos, csv"
+download_png = "imagen, png"
+download_json = "configuración del gráfico, json"
+
+# The footer keys of a static chart canvas, "source: …", as scripts/sample_chart.py draws them.
+canvasKey_n = "n"
+canvasKey_base = "base"
+canvasKey_method = "método"
+canvasKey_note = "nota"
+canvasKey_source = "fuente"
+
+# A page's figures are named in order; a post's fallback chart says which language it was made in.
+figureLabel = "figura {{ .n }}"
+figureFallback_en = "Este gráfico está en inglés: esta página no tiene uno propio."
+figureFallback_es = "Este gráfico está en español: esta página no tiene uno propio."
+
+# The kind of a piece, as a column of the ls -l list.
+kind_post = "post"
+kind_note = "entrada de blog"
+topicsLabel = "temas"
+
+# Callout labels, shown before or beside the callout's text.
+callout_note = "nota"
+callout_caution = "precaución"
+
+# Command palette (spec 002 shell; spec 006 makes it work).
+paletteLabel = "Búsqueda y comandos"
+palettePlaceholder = "busca posts, entradas y comandos"
+paletteMove = "navegar"
+paletteOpen = "abrir"
+paletteClose = "cerrar"
+
+# Names of keys in key hints.
+key_enter = "entrar"
+key_esc = "esc"
+
+# The post and note page (spec 005): its metadata keys, the LinkedIn link, and the license.
+meta_date = "fecha"
+meta_kind = "tipo"
+meta_languages = "idiomas"
+meta_linkedin = "linkedin"
+meta_license = "licencia"
+licenseName = "CC BY 4.0"
+licenseURL = "https://creativecommons.org/licenses/by/4.0/deed.es"
+
+# The method note, the reproduce block, and the cite block (spec 005). Keys of the reproduce
+# lines; sha256 names the digest as sha256sum prints it. citeAuthor is the author as a citation
+# names him; citeLangid is the biblatex language of the page.
+block_method = "método"
+block_reproduce = "reproducir"
+block_cite = "citar"
+repro_data = "datos"
+repro_license = "licencia"
+repro_retrieved = "consultado"
+repro_checksum = "sha256"
+repro_code = "código"
+repro_command = "comando"
+cite_bibtex = "bibtex"
+citeAuthor = "Mora, Brandon"
+citeLangid = "spanish"
+
+# The topic views and home's list (spec 006).
+# The folder of the topic views: /es/temas/<slug>/. Topics are filters, not sections.
+topicsPath = "temas"
+topicsFilterLabel = "Filtrar por tema"
+listEmpty = "Todavía no hay posts ni entradas aquí."
+
+# About (spec 006): the keys of the author's facts, and the page's section headings.
+about_name = "nombre"
+about_profession = "profesión"
+about_role = "cargo"
+about_org = "institución"
+about_place = "lugar"
+about_since = "desde"
+about_focus = "enfoque"
+aboutRoles = "Cargos anteriores"
+aboutEducation = "Formación"
+aboutLinks = "En otros sitios"
+link_linkedin = "linkedin"
+link_github = "github"
+link_orcid = "orcid"
+
+# The 404 page (spec 006).
+notFoundTitle = "Página no encontrada"
+notFoundStatus = "estado"
+notFoundText = "No hay nada en esta dirección. Puede que el enlace tenga un error o que la página haya cambiado de lugar."
+notFoundHome = "Ir al inicio"
+
+# Search and the command palette (#90, spec 006): the kinds of its command rows, its status lines,
+# and the buttons that open it. {query} stands for what the reader typed.
+paletteGoTo = "ir a"
+paletteHome = "inicio"
+paletteLanguage = "idioma"
+paletteCurrent = "actual"
+paletteSearching = "buscando…"
+paletteNoMatch = "ningún post ni entrada coincide con “{query}”"
+paletteUnavailable = "la búsqueda no está disponible aquí"
+searchButton = "buscar"
+notFoundSearch = "buscar posts y entradas"
+
+# Page descriptions (#105, spec 007): each page's <meta name="description">, which the social tags
+# reuse. {{ .site }} is siteTitle; About's comes from its front matter, and a page with no text
+# of its own uses description_page with its title.
+description_home = "Proyectos y posts de {{ .site }} sobre IA, investigación y economía."
+description_topic = "{{ .topic }}: proyectos y posts de {{ .site }}."
+# Each topic view's own line (spec 020, #205), approved by the author: its description in place of
+# description_topic, which stays for a topic without a line of its own.
+description_topic_minds-and-machines = "Lo que el cerebro y los sistemas de IA pueden enseñarse entre sí: textos y proyectos sobre neurociencia, cognición y aprendizaje automático."
+description_topic_economics-of-ai = "Cómo la IA cambia el trabajo, la productividad y los mercados, y cómo medirlo: textos y proyectos donde la economía se cruza con la IA."
+description_topic_living-with-ai = "Cómo convivimos con la IA en el día a día: la confianza, los hábitos y los vínculos que crea, y lo que nos cuestan sus cambios."
+description_topic_open-science = "Datos abiertos, replicación e investigación transparente: textos y proyectos para que el conocimiento sea fácil de encontrar, verificar y reutilizar."
+description_topic_working-with-ai = "Trabajar con agentes de IA en investigación y software: los flujos de trabajo, las herramientas y las convenciones que vuelven confiable su trabajo."
+description_about = "{{ .name }}, {{ .profession }} en el {{ .org }}: trabajo actual, cargos anteriores, formación y perfiles en otros sitios."
+description_page = "{{ .title }}, en el sitio de {{ .site }}."
+
+# The LinkedIn link of a post or note (spec 013, #129): it names the LinkedIn version, not an
+# original that the page would follow.
+linkedinVersion = "versión en LinkedIn"
+
+# Projects (spec 011, #133): the projects list, a project page's metadata keys, its years, and the
+# labels of its links. {{ .start }} and {{ .end }} are four-digit years.
+projectsIntro = "Cosas que he construido o dirigido, y dónde encontrarlas."
+projectsEmpty = "Todavía no hay proyectos aquí."
+# Projects in discovery (#134): a project's kind in search results and lists, and the heading of a
+# topic view's projects.
+kind_project = "proyecto"
+topicProjects = "Proyectos"
+description_projects = "Proyectos de {{ .site }}: qué es cada uno, los años en que estuvo activo y sus enlaces."
+meta_years = "años"
+meta_role = "rol"
+meta_links = "enlaces"
+yearsRange = "{{ .start }}–{{ .end }}"
+yearsOngoing = "{{ .start }}–actualidad"
+projectLink_repository = "repositorio"
+projectLink_website = "sitio web"
+projectLink_writing = "blog"
+projectLink_talk = "charla"
+
+# Header and footer (spec 010, #150): the navigation's places and its label, the footer's profiles
+# key, and the writing page's intro and description. The theme toggle reads themeLabel and
+# theme_<choice> above; contrast is set from the palette.
+navLabel = "Sitio"
+nav_writing = "blog"
+nav_projects = "proyectos"
+nav_about = "sobre mí"
+footerProfiles = "perfiles"
+writingIntro = "Posts y entradas de blog sobre IA, investigación y economía."
+description_writing = "Posts y entradas de blog de {{ .site }} sobre IA, investigación y economía."
+
+# Home's hero (spec 010, #151). The sentence is heroLead, then one topic as heroTopic_<slug>
+# words it (each links that topic's view, and only topics with something filed show); with no
+# topic yet it is heroLeadAlone. heroBio is the line from the author's bio under the sentence
+# (spec 016, #173), approved by the author; home names no employer or job title, which About keeps.
+# heroProfiles labels the list of profile links.
+heroLead = "Proyectos y posts sobre"
+heroLeadAlone = "Proyectos y posts"
+heroTopic_minds-and-machines = "mentes y máquinas"
+heroTopic_economics-of-ai = "la economía de la IA"
+heroTopic_living-with-ai = "cómo convivir con la IA"
+heroTopic_open-science = "la ciencia abierta"
+heroTopic_working-with-ai = "cómo trabajar con IA"
+heroBio = "Científico de datos y economista dedicado a la evaluación de impacto, la IA generativa y la experimentación en desarrollo"
+heroProfiles = "Perfiles"
+
+# Home's live visual (spec 010, #152): the name of the dot plot of every post, note, and project.
+liveLabel = "Todo lo publicado aquí, por fecha y tema"
+
+# Home's sections (spec 010, #153): the headings of the featured cards, the project cards, and
+# the writing list.
+homeFeatured = "Destacados"
+homeProjects = "Proyectos"
+homeWriting = "Blog"

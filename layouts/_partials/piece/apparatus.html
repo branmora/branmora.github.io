@@ -1,0 +1,87 @@
+{{- /*
+  The method note, the reproduce block, and the cite block of a post or a note (spec 005, #85).
+  What the author wrote (the method) is sans; what the site says about the piece is mono, as
+  key: value lines and code blocks. Every line is text in the HTML, readable without JavaScript.
+
+  Context: dict "page" (the page) and "model" (its resolved model, content/model.html).
+*/ -}}
+{{- $page := .page -}}
+{{- $m := .model -}}
+
+{{- with $m.method }}
+<section class="column piece-block" aria-labelledby="piece-method">
+  <h2 class="block-label" id="piece-method">{{ T "block_method" }}</h2>
+  <p class="piece-method">{{ . }}</p>
+</section>
+{{- end }}
+
+{{- /* Reproduction is optional (spec 013): the block shows when the piece has datasets, a code
+   version, or a command, and each line only when its field is set. */}}
+{{- if or $m.datasets $m.code_version $m.command }}
+<section class="column piece-block" data-reproduce aria-labelledby="piece-reproduce">
+  <h2 class="block-label" id="piece-reproduce">{{ T "block_reproduce" }}</h2>
+  <dl class="metadata reproduce-lines">
+    {{- range $i, $d := $m.datasets }}
+    <div{{ if $i }} class="group-start"{{ end }}>
+      <dt>{{ T "repro_data" }}</dt>
+      <dd class="breakable"><a href="{{ $d.url }}">{{ $d.url }}</a></dd>
+    </div>
+    <div>
+      <dt>{{ T "repro_license" }}</dt>
+      <dd>{{ $d.license }}</dd>
+    </div>
+    <div>
+      <dt>{{ T "repro_retrieved" }}</dt>
+      <dd>{{ partial "components/date.html" $d.retrieved }}</dd>
+    </div>
+    {{- with $d.checksum }}
+    {{- /* The bare digest, as sha256sum prints it: one token to copy, with a break opportunity
+       after every 8 characters so it wraps in groups on narrow screens. */}}
+    {{- $digest := strings.TrimPrefix "sha256:" . }}
+    {{- $groups := slice }}
+    {{- range seq 0 8 (sub (len $digest) 1) }}{{ $groups = $groups | append (substr $digest . 8) }}{{ end }}
+    <div>
+      <dt>{{ T "repro_checksum" }}</dt>
+      <dd class="digest">{{ delimit $groups "<wbr>" | safeHTML }}</dd>
+    </div>
+    {{- end }}
+    {{- end }}
+    {{- with $m.code_version }}
+    <div{{ if $m.datasets }} class="group-start"{{ end }}>
+      <dt>{{ T "repro_code" }}</dt>
+      <dd class="breakable">{{ . }}</dd>
+    </div>
+    {{- end }}
+  </dl>
+  {{- with $m.command }}
+  <p class="code-label">{{ T "repro_command" }}</p>
+  <pre class="wrapping" data-reproduce-command><code>{{ . }}</code></pre>
+  {{- end }}
+</section>
+{{- end }}
+
+{{- /* The cite block: a plain citation (Chicago author-date for a web page, with the ISO date of
+   DECISIONS/005) and a biblatex entry in UTF-8, the title as the page shows it. */}}
+{{- $date := (time.AsTime $m.date).Format "2006-01-02" -}}
+{{- $year := substr $date 0 4 -}}
+{{- $site := T "siteTitle" -}}
+{{- $url := $page.Permalink -}}
+{{- $slug := path.Base (strings.TrimSuffix "/" $page.RelPermalink) -}}
+{{- $fields := slice
+  (slice "author" (T "citeAuthor"))
+  (slice "title" (printf "{%s}" $m.title))
+  (slice "date" $date)
+  (slice "year" $year)
+  (slice "organization" $site)
+  (slice "url" $url)
+  (slice "langid" (T "citeLangid"))
+-}}
+<section class="column piece-block" data-cite aria-labelledby="piece-cite">
+  <h2 class="block-label" id="piece-cite">{{ T "block_cite" }}</h2>
+  <p class="cite-plain breakable" data-cite-plain>{{ T "citeAuthor" }}. {{ $year }}. “{{ $m.title }}{{ if not (findRE `[.?!]$` $m.title) }}.{{ end }}” {{ $site }}, {{ partial "components/date.html" $date }}. {{ $url }}</p>
+  <p class="code-label">{{ T "cite_bibtex" }}</p>
+  <pre class="wrapping bibtex" data-cite-bibtex><code><span class="bib-line">@online{mora{{ $year }}-{{ $slug }},
+</span>{{ range $fields }}<span class="bib-line">  {{ printf "%-12s" (index . 0) }} = {{ "{" }}{{ index . 1 }}},
+</span>{{ end }}<span class="bib-line">}</span></code></pre>
+</section>
+{{- /**/ -}}

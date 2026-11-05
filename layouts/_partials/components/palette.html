@@ -1,0 +1,18 @@
+{{- /* The command palette shell: the search input, a list of results with the current one marked
+by the accent bar, and its key hints. Spec 006 makes it open and search.
+Context: dict "results" (list of dicts: kind, title), "id". */ -}}
+<div class="palette" role="search" aria-label="{{ T "paletteLabel" }}">
+  <div class="palette-input">
+    <kbd aria-hidden="true">/</kbd>
+    <input type="search" id="{{ .id }}-input" aria-label="{{ T "paletteLabel" }}" placeholder="{{ T "palettePlaceholder" }}" autocomplete="off">
+  </div>
+  <ul class="palette-results">
+    {{- range $i, $r := .results }}
+    <li{{ if eq $i 0 }} aria-current="true"{{ end }}><span class="ls-kind">{{ T (printf "kind_%s" $r.kind) }}</span> <span>{{ $r.title }}</span></li>
+    {{- end }}
+  </ul>
+  {{ partial "components/key-hints.html" (slice
+    (dict "keys" (slice "↑" "↓") "label" (T "paletteMove"))
+    (dict "keys" (slice (T "key_enter")) "label" (T "paletteOpen"))
+    (dict "keys" (slice (T "key_esc")) "label" (T "paletteClose"))) }}
+</div>

@@ -1,0 +1,15 @@
+# The characters the self-hosted IBM Plex files cover. scripts/subset_fonts.py subsets the faces
+# to this list, and layouts/_partials/fonts/stylesheet.html gives it to every @font-face as its
+# unicode-range, so the two never disagree. Change it here, then run the script again.
+#
+# - Printable ASCII and Latin-1: English, all of Spanish, ¿ ¡ « » ° © ± × ÷
+# - Spaces: figure, punctuation, thin, hair, narrow no-break (for aligning and grouping numbers)
+# - Hyphens and dashes, curly quotes, bullet, ellipsis, per mille, primes, single guillemets
+# - Fraction slash, euro, trade mark, the four arrows and ↔ ↕ (key hints), minus, ≈ ≠ ≤ ≥
+# - ı Œ œ ˆ ˜, which some Latin text and the fonts' own composites use
+unicodeRange = [
+  "U+0020-007E", "U+00A0-00FF", "U+0131", "U+0152-0153", "U+02C6", "U+02DC",
+  "U+2007-200A", "U+2010-2014", "U+2018-201A", "U+201C-201E", "U+2022", "U+2026", "U+202F",
+  "U+2030", "U+2032-2033", "U+2039-203A", "U+2044", "U+20AC", "U+2122", "U+2190-2195",
+  "U+2212", "U+2248", "U+2260", "U+2264-2265",
+]

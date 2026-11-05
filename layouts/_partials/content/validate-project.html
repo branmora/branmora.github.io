@@ -1,0 +1,152 @@
+{{- /*
+  Validates a project against CONTENT.md, Projects, the way content/validate.html validates a piece,
+  which calls it for every page under a `projects/` folder.
+
+  Takes the page. Every problem is reported with `errorf` as "<content file>: <problem>", the
+  content file's path from the repository root, then the field. Returns false when it reported a
+  problem, true otherwise.
+*/ -}}
+{{- $page := . -}}
+{{- $ok := true -}}
+{{- $at := strings.TrimPrefix (printf "%s/" hugo.WorkingDir) $page.File.Filename -}}
+{{- $p := $page.Params -}}
+{{- $topics := site.Params.topics -}}
+{{- $url := `^https?://\S+$` -}}
+{{- $year := `^\d{4}$` -}}
+{{- $labels := slice "repository" "website" "writing" "talk" -}}
+
+{{- /* Required text fields; translationKey is optional text. */ -}}
+{{- range slice "title" "summary" "role" -}}
+  {{- $v := index $p . -}}
+  {{- if not (isset $p .) -}}
+    {{- $ok = false -}}{{- errorf "%s: %s is missing" $at . -}}
+  {{- else if ne (printf "%T" $v) "string" -}}
+    {{- $ok = false -}}{{- errorf "%s: %s must be text" $at . -}}
+  {{- else if eq (strings.TrimSpace $v) "" -}}
+    {{- $ok = false -}}{{- errorf "%s: %s is empty" $at . -}}
+  {{- end -}}
+{{- end -}}
+{{- if and (isset $p "translationkey") (ne (printf "%T" (index $p "translationkey")) "string") -}}
+  {{- $ok = false -}}{{- errorf "%s: translationKey must be text" $at -}}
+{{- end -}}
+
+{{- /* Fields for search and sharing (spec 020), checked by content/validate-sharing.html. A
+   project's description is its summary, so it sets no `description`. */ -}}
+{{- if not (partial "content/validate-sharing.html" (dict "page" $page "fields" (slice "slug" "short_title"))) -}}
+  {{- $ok = false -}}
+{{- end -}}
+
+{{- /* years: {start, end}, each a four-digit year; start required, end optional and not before start. */ -}}
+{{- $y := index $p "years" -}}
+{{- if not (isset $p "years") -}}
+  {{- $ok = false -}}{{- errorf "%s: years is missing" $at -}}
+{{- else if not (reflect.IsMap $y) -}}
+  {{- $ok = false -}}{{- errorf "%s: years must have a start and an optional end" $at -}}
+{{- else -}}
+  {{- range $key := slice "start" "end" -}}
+    {{- $v := index $y $key -}}
+    {{- if not (isset $y $key) -}}
+      {{- if eq $key "start" -}}{{- $ok = false -}}{{- errorf "%s: years.start is missing" $at -}}{{- end -}}
+    {{- else if or (reflect.IsSlice $v) (reflect.IsMap $v) (not (findRE $year (printf "%v" $v))) -}}
+      {{- $ok = false -}}{{- errorf "%s: years.%s must be a year, YYYY" $at $key -}}
+    {{- end -}}
+  {{- end -}}
+  {{- $start := index $y "start" -}}
+  {{- $end := index $y "end" -}}
+  {{- if and $ok $end (lt (int (printf "%v" $end)) (int (printf "%v" $start))) -}}
+    {{- $ok = false -}}{{- errorf "%s: years.end is before years.start" $at -}}
+  {{- end -}}
+{{- end -}}
+
+{{- /* topics: a list of one or more of the five slugs, as for pieces. */ -}}
+{{- $t := index $p "topics" -}}
+{{- if not (isset $p "topics") -}}
+  {{- $ok = false -}}{{- errorf "%s: topics is missing" $at -}}
+{{- else if not (reflect.IsSlice $t) -}}
+  {{- $ok = false -}}{{- errorf "%s: topics must be a list of topic slugs" $at -}}
+{{- else if not $t -}}
+  {{- $ok = false -}}{{- errorf "%s: topics is empty" $at -}}
+{{- else -}}
+  {{- range $i, $slug := $t -}}
+    {{- if ne (printf "%T" $slug) "string" -}}
+      {{- $ok = false -}}{{- errorf "%s: topics[%d] must be a topic slug" $at $i -}}
+    {{- else if not (in $topics $slug) -}}
+      {{- $ok = false -}}{{- errorf "%s: unknown topic %q in topics; known topics are %s" $at $slug (delimit $topics ", ") -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{- /* links: an optional list of {label, url}, the label one of four. */ -}}
+{{- $links := index $p "links" -}}
+{{- if isset $p "links" -}}
+  {{- if not (reflect.IsSlice $links) -}}
+    {{- $ok = false -}}{{- errorf "%s: links must be a list" $at -}}
+  {{- else -}}
+    {{- range $i, $l := $links -}}
+      {{- if not (reflect.IsMap $l) -}}
+        {{- $ok = false -}}{{- errorf "%s: links[%d] must be a link with label and url" $at $i -}}
+      {{- else -}}
+        {{- $label := index $l "label" -}}
+        {{- if not (isset $l "label") -}}
+          {{- $ok = false -}}{{- errorf "%s: links[%d].label is missing" $at $i -}}
+        {{- else if not (in $labels (printf "%v" $label)) -}}
+          {{- $ok = false -}}{{- errorf "%s: links[%d].label must be one of %s" $at $i (delimit $labels ", ") -}}
+        {{- end -}}
+        {{- $u := index $l "url" -}}
+        {{- if not (isset $l "url") -}}
+          {{- $ok = false -}}{{- errorf "%s: links[%d].url is missing" $at $i -}}
+        {{- else if or (ne (printf "%T" $u) "string") (not (findRE $url $u)) -}}
+          {{- $ok = false -}}{{- errorf "%s: links[%d].url must be a URL" $at $i -}}
+        {{- end -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{- /* image: an optional {src, alt}, src an image in the bundle and alt text in the file's language. */ -}}
+{{- $named := slice -}}
+{{- $img := index $p "image" -}}
+{{- if isset $p "image" -}}
+  {{- if not (reflect.IsMap $img) -}}
+    {{- $ok = false -}}{{- errorf "%s: image must have a src and an alt" $at -}}
+  {{- else -}}
+    {{- $src := index $img "src" -}}
+    {{- if not (isset $img "src") -}}
+      {{- $ok = false -}}{{- errorf "%s: image.src is missing" $at -}}
+    {{- else if or (ne (printf "%T" $src) "string") (eq (strings.TrimSpace $src) "") -}}
+      {{- $ok = false -}}{{- errorf "%s: image.src must be a file name" $at -}}
+    {{- else -}}
+      {{- $named = $named | append $src -}}
+      {{- $r := $page.Resources.Get $src -}}
+      {{- if not $r -}}
+        {{- $ok = false -}}{{- errorf "%s: image.src names %s, which is not in the bundle" $at $src -}}
+      {{- else if not (in (slice ".png" ".jpg" ".webp") (lower (path.Ext $src))) -}}
+        {{- $ok = false -}}{{- errorf "%s: image.src names %s, which is not a .png, .jpg, or .webp image" $at $src -}}
+      {{- end -}}
+    {{- end -}}
+    {{- $alt := index $img "alt" -}}
+    {{- if not (isset $img "alt") -}}
+      {{- $ok = false -}}{{- errorf "%s: image.alt is missing" $at -}}
+    {{- else if or (ne (printf "%T" $alt) "string") (eq (strings.TrimSpace $alt) "") -}}
+      {{- $ok = false -}}{{- errorf "%s: image.alt must be text" $at -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{- /* A bundle carries no file its front matter does not name, as for pieces. Files marked with
+       another language belong to that language's version. */ -}}
+{{- $lang := $page.Language.Lang -}}
+{{- range $page.Resources -}}
+  {{- if ne .ResourceType "page" -}}
+    {{- $name := .Name -}}
+    {{- $other := false -}}
+    {{- range hugo.Sites -}}
+      {{- if and (ne .Language.Lang $lang) (findRE (printf `\.%s\.[^.]+$` .Language.Lang) $name) -}}{{- $other = true -}}{{- end -}}
+    {{- end -}}
+    {{- if and (not $other) (not (in $named $name)) -}}
+      {{- $ok = false -}}{{- errorf "%s: the bundle carries %s, which image does not name" $at $name -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{- return $ok -}}

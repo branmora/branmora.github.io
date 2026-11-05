@@ -1,0 +1,29 @@
+{{- /*
+  An image in the text (CONTENT.md, Images in the text): a file from the page's bundle, never from
+  another origin. An image alone in its paragraph is a figure, its Markdown title the caption, which
+  may hold inline Markdown such as a link; an image inside a line stays an image.
+
+  A piece's images are checked by content/validate.html before its text renders. On any other page
+  this hook reports a missing file or alt text itself, in the same message form.
+*/ -}}
+{{- $page := .Page -}}
+{{- $at := strings.TrimPrefix (printf "%s/" hugo.WorkingDir) $page.File.Filename -}}
+{{- $alt := strings.TrimSpace .PlainText -}}
+{{- $img := partial "content/text-image.html" (dict "page" $page "name" .Destination) -}}
+{{- if not (partialCached "content/is-piece.html" $page $page.Path) -}}
+  {{- if not $img -}}{{- errorf "%s: the text shows %s, which is not an image in the bundle" $at .Destination -}}{{- end -}}
+  {{- if not $alt -}}{{- errorf "%s: the text shows %s without alt text" $at .Destination -}}{{- end -}}
+{{- end -}}
+{{- with $img -}}
+  {{- $tag := printf `<img src="%s" width="%d" height="%d" alt="%s" decoding="async">` .RelPermalink .Width .Height ($alt | htmlEscape) -}}
+  {{- if $.IsBlock -}}
+<figure class="text-figure">
+  {{ $tag | safeHTML }}
+  {{- with $.Title }}
+  <figcaption>{{ $page.RenderString (dict "display" "inline") . }}</figcaption>
+  {{- end }}
+</figure>
+  {{- else -}}
+    {{- $tag | safeHTML -}}
+  {{- end -}}
+{{- end -}}

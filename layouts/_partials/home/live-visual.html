@@ -1,0 +1,141 @@
+{{- /* Home's live visual (spec 010, #152; DESIGN.md, Live visual): a dot plot of the site's own
+content. One mark per post, note, and project of this language, each a link to its item named by
+its title. A row per topic that has something here, in params.topics order; an item sits in the
+row of its first topic and takes that topic's chart.categorical slot, its place in params.topics,
+so a colour always means the same topic. x is the date: a post or note at its date, a project's
+dot at the start of its first year with its range (chart.context range) to the end of its last
+year, or to the build while it runs. A dot closer than 1/36 of the span to an earlier one of its
+row steps to another level, so marks crowd less at any width.
+
+The SVG is drawn here, whole: x in percentages and y in px, so marks and text keep their sizes at
+every width, and it reads without JavaScript. Each mark is an HTML link in a foreignObject, holding
+its dot (a small SVG) in a 24px hit target, so it is a plain link like every other on the page;
+its `title` is the tooltip without JavaScript. Each row is a group `[data-topic]` holding its name and
+its marks, so assets/js/hero.js can mark the row of the sentence's topic current (spec 016, #175).
+assets/js/live-visual.js adds the spring and the tooltip. Context: none. */ -}}
+{{- $topics := site.Params.topics }}
+{{- $items := slice }}
+{{- range site.RegularPages }}
+  {{- $page := . }}
+  {{- if in (slice "post" "note") $page.Params.type }}
+    {{- $t := $page.Date.Unix }}
+    {{- $items = $items | append (dict "page" $page "start" $t "end" $t "when" ($page.Date.Format "2006-01-02") "first" $page.Date.Year "last" $page.Date.Year "topic" (index $page.Params.topics 0)) }}
+  {{- else if partial "content/is-project.html" $page }}
+    {{- $m := partial "content/model.html" $page }}
+    {{- with $m.years }}
+      {{- $start := (time.AsTime (printf "%d-01-01T00:00:00Z" .start)).Unix }}
+      {{- $end := now.Unix }}
+      {{- $lastYear := now.Year }}
+      {{- with .end }}{{ $lastYear = . }}{{ end }}
+      {{- with .end }}{{ $end = (time.AsTime (printf "%d-12-31T00:00:00Z" .)).Unix }}{{ end }}
+      {{- if lt $end $start }}{{ $end = $start }}{{ end }}
+      {{- $items = $items | append (dict "page" $page "start" $start "end" $end "when" (partial "project/years.html" .) "first" .start "last" $lastYear "topic" (index $m.topics 0).slug "project" true) }}
+    {{- end }}
+  {{- end }}
+{{- end }}
+
+{{- if $items }}
+{{- /* The span, padded by 3% on each side; a span under a year is a year around its middle. */ -}}
+{{- $lo := (index $items 0).start }}
+{{- $hi := (index $items 0).end }}
+{{- range $items }}
+  {{- if lt .start $lo }}{{ $lo = .start }}{{ end }}
+  {{- if gt .end $hi }}{{ $hi = .end }}{{ end }}
+{{- end }}
+{{- $year := 31557600 }}
+{{- if lt (sub $hi $lo) $year }}
+  {{- $mid := div (add $lo $hi) 2 }}
+  {{- $lo = sub $mid (div $year 2) }}
+  {{- $hi = add $mid (div $year 2) }}
+{{- end }}
+{{- $pad := div (sub $hi $lo) 33 }}
+{{- $lo = sub $lo $pad }}
+{{- $hi = add $hi $pad }}
+{{- $span := float (sub $hi $lo) }}
+{{- $near := div $span 36 }}
+
+{{- /* Rows: the topics with an item, each item placed at a level within its row. */ -}}
+{{- $step := 10 }}
+{{- $rows := slice }}
+{{- range $slot, $topic := $topics }}
+  {{- $mine := where $items "topic" $topic }}
+  {{- if $mine }}
+    {{- $last := dict }}
+    {{- $placed := slice }}
+    {{- $up := 0 }}
+    {{- $down := 0 }}
+    {{- range sort $mine "start" }}
+      {{- $item := . }}
+      {{- $level := -1 }}
+      {{- range $l := seq 0 8 }}
+        {{- if lt $level 0 }}
+          {{- $prev := index $last (string $l) }}
+          {{- if or (eq $prev nil) (ge (sub $item.start $prev) $near) }}{{ $level = $l }}{{ end }}
+        {{- end }}
+      {{- end }}
+      {{- if lt $level 0 }}{{ $level = 0 }}{{ end }}
+      {{- $last = merge $last (dict (string $level) $item.end) }}
+      {{- /* Levels alternate around the row's line: 0, up 1, down 1, up 2, down 2, … */ -}}
+      {{- $offset := mul (div (add $level 1) 2) $step }}
+      {{- if eq (mod $level 2) 1 }}{{ $offset = mul $offset -1 }}{{ end }}
+      {{- if lt $offset (mul $up -1) }}{{ $up = mul $offset -1 }}{{ end }}
+      {{- if gt $offset $down }}{{ $down = $offset }}{{ end }}
+      {{- $placed = $placed | append (merge $item (dict "offset" $offset)) }}
+    {{- end }}
+    {{- $rows = $rows | append (dict "topic" $topic "slot" (add $slot 1) "items" $placed "up" $up "down" $down) }}
+  {{- end }}
+{{- end }}
+
+{{- /* Vertical layout, in px: each row is its name, then its line of marks. */ -}}
+{{- $label := 18 }}
+{{- $room := 12 }}
+{{- $y := 0 }}
+{{- $laid := slice }}
+{{- range $rows }}
+  {{- $line := add $y $label $room .up }}
+  {{- $laid = $laid | append (merge . (dict "name" $y "line" $line)) }}
+  {{- $y = add $line .down $room 6 }}
+{{- end }}
+{{- $plot := $y }}
+{{- $height := add $plot 22 }}
+
+{{- /* Year lines: every 1 January inside the span. */ -}}
+{{- $ticks := slice }}
+{{- $years := slice }}
+{{- range $items }}{{ $years = $years | append .first .last }}{{ end }}
+{{- $years = sort $years }}
+{{- range seq (sub (index $years 0) 1) (add (index $years (sub (len $years) 1)) 1) }}
+  {{- $t := (time.AsTime (printf "%d-01-01T00:00:00Z" .)).Unix }}
+  {{- if and (gt $t $lo) (lt $t $hi) }}
+    {{- $ticks = $ticks | append (dict "x" (printf "%.2f" (mul 100 (div (float (sub $t $lo)) $span))) "year" .) }}
+  {{- end }}
+{{- end }}
+
+<div class="live" data-live>
+  <svg class="live-plot" data-live-visual width="100%" height="{{ $height }}" role="group" aria-label="{{ T "liveLabel" }}">
+    {{- range $ticks }}
+    <line class="live-grid" x1="{{ .x }}%" x2="{{ .x }}%" y1="0" y2="{{ $plot }}"/>
+    <text class="live-year" x="{{ .x }}%" y="{{ add $plot 16 }}" dx="4">{{ .year }}</text>
+    {{- else }}
+    <text class="live-year" x="0" y="{{ add $plot 16 }}">{{ index $years 0 }}</text>
+    {{- end }}
+    {{- range $laid }}
+    {{- $row := . }}
+    <g class="live-row" data-topic="{{ .topic }}">
+    <text class="live-topic" x="0" y="{{ add .name 14 }}">{{ T (printf "topic_%s" .topic) }}</text>
+    {{- range .items }}
+    {{- $x := printf "%.2f" (mul 100 (div (float (sub .start $lo)) $span)) }}
+    {{- $cy := add $row.line .offset }}
+    {{- if .project }}
+    <line class="live-range" x1="{{ $x }}%" x2="{{ printf "%.2f" (mul 100 (div (float (sub .end $lo)) $span)) }}%" y1="{{ $cy }}" y2="{{ $cy }}"/>
+    {{- end }}
+    <foreignObject class="live-anchor" x="{{ $x }}%" y="{{ $cy }}" width="1" height="1">
+      <a class="live-mark" href="{{ .page.RelPermalink }}" aria-label="{{ .page.Title }}" title="{{ .page.Title }}" data-slot="{{ $row.slot }}" data-when="{{ .when }}"><svg class="live-shape" width="24" height="24" viewBox="-12 -12 24 24" aria-hidden="true" focusable="false"><circle class="live-dot" r="4"/></svg></a>
+    </foreignObject>
+    {{- end }}
+    </g>
+    {{- end }}
+  </svg>
+  <div class="live-tip" hidden aria-hidden="true"><span class="live-when"></span><span class="live-title"></span></div>
+</div>
+{{- end }}

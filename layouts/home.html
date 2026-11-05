@@ -1,0 +1,33 @@
+{{ define "head" }}
+  {{- with .OutputFormats.Get "rss" }}
+  <link rel="alternate" type="application/rss+xml" href="{{ .RelPermalink }}" title="{{ T "siteTitle" }}">
+  {{- end }}
+  {{- with slice (resources.Get "js/hero.js") (resources.Get "js/live-visual.js") (resources.Get "js/cards.js") | resources.Concat "js/home.js" | minify | fingerprint }}
+  <script src="{{ .RelPermalink }}" integrity="{{ .Data.Integrity }}" defer></script>
+  {{- end }}
+{{- end }}
+{{- /* Home (spec 010): the hero with its live visual, then the featured items, the projects as
+cards, and every post and note as the ls -l list, under the topic filters. */}}
+{{ define "main" }}
+<main class="home">
+  {{ partial "home/hero.html" . }}
+  {{ partial "home/featured.html" . }}
+  {{- with partial "content/projects.html" "" }}
+  <section class="home-section" aria-labelledby="home-projects">
+    <h2 id="home-projects">{{ T "homeProjects" }}</h2>
+    <ul class="project-cards" data-home-projects>
+      {{- range . }}
+      {{ partial "project/card.html" (merge . (dict "level" 3)) }}
+      {{- end }}
+    </ul>
+  </section>
+  {{- end }}
+  <section class="home-section" aria-labelledby="home-writing">
+    <h2 id="home-writing">{{ T "homeWriting" }}</h2>
+    {{ partial "topics/filters.html" "" }}
+    {{- $rows := partial "content/pieces.html" "" }}
+    {{ partial "components/ls.html" $rows }}
+    {{ partial "site/list-keys.html" $rows }}
+  </section>
+</main>
+{{ end }}
