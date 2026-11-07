@@ -14,8 +14,9 @@
   - Projects (spec 011): a SoftwareSourceCode when the project links a repository (with its
     codeRepository), a CreativeWork otherwise, with its name, summary, page, author, language,
     topics, years, image, other links, and translations.
-  - About: the author as a Person, with sameAs linking the profiles (and ORCID once params.orcid
-    is set). Other pages name the author by the same @id.
+  - About: the author as a Person, with both its names, the schools About lists, and sameAs
+    linking the profiles About links in every language (and ORCID once params.orcid is set).
+    Other pages name the author by the same @id, `<site root>#person` (spec 023).
 */ -}}
 {{- $page := . -}}
 {{- $lang := site.Language.Lang -}}
@@ -23,15 +24,36 @@
 {{- $siteName := T "siteTitle" -}}
 {{- $graph := slice -}}
 
-{{- /* The author, from About in this language. */ -}}
+{{- /* The author, from About in this language: one person in every language, named by one @id at
+  the site's root (spec 023), with About in this language as its url. */ -}}
 {{- $person := dict "@type" "Person" "name" $siteName -}}
 {{- with site.GetPage "/about" -}}
   {{- $p := .Params -}}
+  {{- /* The profiles About links in every language, each once, then ORCID once it is set. */ -}}
   {{- $same := slice -}}
-  {{- range $p.links -}}{{- $same = $same | append .url -}}{{- end -}}
+  {{- range hugo.Sites -}}
+    {{- with .GetPage "/about" -}}
+      {{- range .Params.links -}}{{- if not (in $same .url) -}}{{- $same = $same | append .url -}}{{- end -}}{{- end -}}
+    {{- end -}}
+  {{- end -}}
   {{- with site.Params.orcid -}}{{- $same = $same | append (printf "https://orcid.org/%s" .) -}}{{- end -}}
-  {{- $person = dict "@type" "Person" "@id" (printf "%s#person" .Permalink) "name" ($p.name | default $siteName) "url" .Permalink -}}
+  {{- $person = dict "@type" "Person" "@id" (printf "%s#person" ("/" | absURL)) "name" ($p.name | default $siteName) "url" .Permalink -}}
+  {{- with $p.full_name -}}{{- $person = merge $person (dict "alternateName" .) -}}{{- end -}}
+  {{- with $p.given_name -}}{{- $person = merge $person (dict "givenName" .) -}}{{- end -}}
+  {{- with $p.family_name -}}{{- $person = merge $person (dict "familyName" .) -}}{{- end -}}
   {{- with $p.description -}}{{- $person = merge $person (dict "description" .) -}}{{- end -}}
+  {{- /* The schools About lists, each once. */ -}}
+  {{- $schools := slice -}}
+  {{- $alumni := slice -}}
+  {{- range $p.education -}}
+    {{- with .school -}}
+      {{- if not (in $schools .) -}}
+        {{- $schools = $schools | append . -}}
+        {{- $alumni = $alumni | append (dict "@type" "EducationalOrganization" "name" .) -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+  {{- with $alumni -}}{{- $person = merge $person (dict "alumniOf" .) -}}{{- end -}}
   {{- with $p.current -}}
     {{- with .role -}}{{- $person = merge $person (dict "jobTitle" .) -}}{{- end -}}
     {{- with .org -}}{{- $person = merge $person (dict "worksFor" (dict "@type" "Organization" "name" .)) -}}{{- end -}}

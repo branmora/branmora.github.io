@@ -9,6 +9,11 @@ before the pages under it. Headings and descriptions come from the string files.
 # {{ index $own "siteTitle" }}
 
 > {{ index $own "siteDescription" }}
+{{- /* The site's name and the full name are one person (spec 023), once About holds the full name. */ -}}
+{{- with site.GetPage "/about" }}{{ $about := .Permalink }}{{ with .Params.full_name }}
+
+{{ printf (index $own "llmsOnePerson") (index $own "siteTitle") . $about }}
+{{- end }}{{ end }}
 {{ range hugo.Sites }}
   {{- $s := index $strings .Language.Lang }}
 ## {{ index $own (printf "language_%s" .Language.Lang) }}
