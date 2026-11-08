@@ -8,6 +8,9 @@ layout: about
 # A page, not a piece: no model.json view (CONTENT.md).
 outputs: [html]
 name: "Brandon Mora"
+full_name: "Brandon Mora Perez"
+given_name: "Brandon"
+family_name: "Mora Perez"
 description: "data scientist and economist"
 current:
   role: "Knowledge and Learning Senior Associate"
@@ -45,6 +48,9 @@ links:
   - key: github
     url: "https://github.com/branmora"
     label: "github.com/branmora"
+  - key: idb
+    url: "https://www.iadb.org/en/blog/author/brandon-mora-perez"
+    label: "iadb.org/en/blog/author/brandon-mora-perez"
 ---
 Data Scientist and Economist with a passion for data, impact evaluation, generative AI and experimentation in development. Dedicated to evidence-based methods that validate what truly works and drive meaningful change.
 

@@ -8,6 +8,9 @@ layout: about
 # A page, not a piece: no model.json view (CONTENT.md).
 outputs: [html]
 name: "Brandon Mora"
+full_name: "Brandon Mora Perez"
+given_name: "Brandon"
+family_name: "Mora Perez"
 description: "científico de datos y economista"
 current:
   role: "Asociado sénior de Conocimiento y Aprendizaje"
@@ -45,6 +48,9 @@ links:
   - key: github
     url: "https://github.com/branmora"
     label: "github.com/branmora"
+  - key: idb
+    url: "https://www.iadb.org/es/blog/autor/brandon-mora-perez"
+    label: "iadb.org/es/blog/autor/brandon-mora-perez"
 ---
 Científico de datos y economista, apasionado por los datos, la evaluación de impacto, la IA generativa y la experimentación en desarrollo. Me dedico a métodos basados en evidencia que comprueban qué funciona de verdad e impulsan cambios significativos.
 
