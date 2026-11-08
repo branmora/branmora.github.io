@@ -3,6 +3,9 @@ siteTitle = "Brandon Mora"
 # The one-line description: the RSS channel, llms.txt, the site card's alt text, and the WebSite's
 # structured data.
 siteDescription = "Writing on AI, economics, and the social sciences"
+# llms.txt (spec 023): after the description, the site's name and the full name as one person,
+# then About in English.
+llmsOnePerson = "%[1]s and %[2]s are the same person, the author of this site: %[3]s"
 # After the name in home's <title> (spec 020, #202): the start of heroBio, the approved bio line,
 # so the title fits in 60 characters.
 homeTitle = "Data scientist and economist"
@@ -52,6 +55,12 @@ canvasKey_base = "base"
 canvasKey_method = "method"
 canvasKey_note = "note"
 canvasKey_source = "source"
+
+# The map's zoom buttons in the interactive view; the chart kit carries them too (strings.json).
+chartZoom_label = "zoom"
+chartZoom_in = "zoom in"
+chartZoom_out = "zoom out"
+chartZoom_reset = "reset"
 
 # A page's figures are named in order; a post's fallback chart says which language it was made in.
 figureLabel = "figure {{ .n }}"
@@ -111,6 +120,7 @@ listEmpty = "No posts or blog posts here yet."
 
 # About (spec 006): the keys of the author's facts, and the page's section headings.
 about_name = "name"
+about_full_name = "full name"
 about_profession = "profession"
 about_role = "role"
 about_org = "employer"
@@ -122,6 +132,7 @@ aboutEducation = "Education"
 aboutLinks = "Elsewhere"
 link_linkedin = "linkedin"
 link_github = "github"
+link_idb = "idb blog"
 link_orcid = "orcid"
 
 # The 404 page (spec 006).

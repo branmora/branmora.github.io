@@ -70,13 +70,11 @@ turns it into an ECharts option per preset.
         </div>
         {{- end }}
         {{- if eq $spec.kind "map" }}
-        {{- with $page.Params.interactive.zoom }}
-        <div class="chart-toggles" role="group" aria-label="{{ .label }}">
+        <div class="chart-toggles" role="group" aria-label="{{ T "chartZoom_label" }}">
           {{- range $action := slice "in" "out" "reset" }}
-          <button type="button" data-map-zoom="{{ $action }}" hidden>{{ index $page.Params.interactive.zoom $action }}</button>
+          <button type="button" data-map-zoom="{{ $action }}" hidden>{{ T (printf "chartZoom_%s" $action) }}</button>
           {{- end }}
         </div>
-        {{- end }}
         {{- end }}
         <div class="interactive-frame" data-surface="paper">
           <div data-preset="interactive">

@@ -4,14 +4,16 @@ line (spec 010). No photo. The ORCID line appears only once params.orcid
 is set. The facts are the content file's front matter; the labels come from i18n/<lang>.toml. */ -}}
 {{ define "main" }}
 {{- $p := .Params }}
-{{- $facts := slice
-  (dict "key" (T "about_name") "value" $p.name)
+{{- $facts := slice (dict "key" (T "about_name") "value" $p.name) }}
+{{- /* The full name, with both surnames (spec 023), once the front matter holds it. */ -}}
+{{- with $p.full_name }}{{ $facts = $facts | append (dict "key" (T "about_full_name") "value" .) }}{{ end }}
+{{- $facts = $facts | append (slice
   (dict "key" (T "about_profession") "value" $p.description)
   (dict "key" (T "about_role") "value" $p.current.role)
   (dict "key" (T "about_org") "value" $p.current.org)
   (dict "key" (T "about_place") "value" $p.current.place)
   (dict "key" (T "about_since") "value" $p.current.since)
-  (dict "key" (T "about_focus") "value" $p.current.focus) }}
+  (dict "key" (T "about_focus") "value" $p.current.focus)) }}
 <main class="about">
   <div class="prose">
     <h1>{{ .Title }}</h1>
